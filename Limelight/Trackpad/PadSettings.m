@@ -14,6 +14,8 @@ NSString* const PadKeySwapScreens = @"pad.swapScreens";
 NSString* const PadKeyDimWhenIdle = @"pad.dimWhenIdle";
 NSString* const PadKeyAutocorrect = @"pad.autocorrect";
 NSString* const PadKeyTypeOnRelease = @"pad.typeOnRelease";
+NSString* const PadKeyAutoCapitalize = @"pad.autoCapitalize";
+NSString* const PadKeyDoubleSpacePeriod = @"pad.doubleSpacePeriod";
 
 NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotification";
 
@@ -31,6 +33,8 @@ NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotificatio
             PadKeyDimWhenIdle: @YES,
             PadKeyAutocorrect: @YES,
             PadKeyTypeOnRelease: @NO,
+            PadKeyAutoCapitalize: @YES,
+            PadKeyDoubleSpacePeriod: @YES,
         }];
     }
 }
@@ -44,6 +48,8 @@ NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotificatio
 + (BOOL)dimWhenIdle { return [self boolForKey:PadKeyDimWhenIdle]; }
 + (BOOL)autocorrect { return [self boolForKey:PadKeyAutocorrect]; }
 + (BOOL)typeOnRelease { return [self boolForKey:PadKeyTypeOnRelease]; }
++ (BOOL)autoCapitalize { return [self boolForKey:PadKeyAutoCapitalize]; }
++ (BOOL)doubleSpacePeriod { return [self boolForKey:PadKeyDoubleSpacePeriod]; }
 
 + (float)floatForKey:(NSString*)key {
     return [[NSUserDefaults standardUserDefaults] floatForKey:key];

@@ -40,18 +40,21 @@ Every action gives a haptic tap.
   lands (Settings can switch this to "type when the finger lifts"), each finger is tracked
   separately, and every press flashes and buzzes. **?123** and **=\<** switch to numbers,
   symbols, Esc, Tab and arrow keys. Tap ⇧ once for one capital letter, or twice quickly for caps
-  lock. Hold ⌫ to keep deleting; while you hold it, the space bar turns red and says
+  lock. A new sentence starts with a capital letter, and tapping space twice types ". ".
+  Hold ⌫ to keep deleting; while you hold it, the space bar turns red and says
   **Clear all** (Ctrl+A, then Backspace). **✕ Close** returns to the trackpad.
 - ✨ **Autocorrect** (on by default) fixes a misspelled word when you finish it with a space or
   punctuation, and splits words run together by a missed space bar ("helloworld" or
-  "hellobworld" becomes "hello world"). While you type, the strip shows "→ correction"; tap it to keep your spelling.
+  "hellobworld" becomes "hello world"). Missing or extra letters, contractions ("dont" becomes "don't") and
+  the word before are all taken into account. While you type, the strip shows "→ correction"; tap it to keep your spelling.
   Backspace right after a correction undoes it. Either way the word is remembered and not
   corrected again.
 - 🖥️ **PC keys**: Esc, F1 to F12, Alt+Tab, Win+Tab, Win+D, Alt+F4, Ctrl+Shift+Esc, Print Screen,
   Home / End / Page Up / Page Down / Delete / Backspace and arrows. Ctrl, Alt, Shift and Win stay
   held after a tap and go with the next key, for any combo. **ABC** switches to the keyboard.
 - ⚙️ **Settings**: pointer speed and acceleration, scroll speed, pinch zoom speed, classic scroll direction,
-  swap screens (trackpad on top), dim when idle, autocorrect, type when the finger lifts, and a
+  swap screens (trackpad on top), dim when idle, autocorrect, auto-capitalization, the "." shortcut, type when
+  the finger lifts, and a
   feel (Off, Tick, Click, Heavy, Double, Buzz) and strength for every haptic.
 
 Touching the stream itself still works like Moonlight's own touch mode, and tapping with three

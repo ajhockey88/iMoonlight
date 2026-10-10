@@ -7,7 +7,8 @@
 //  how common a word is (words.txt) against how big a slip it would take to type it wrong,
 //  with neighbouring keys counting as small slips. Words run together by a missed space bar
 //  (or a c, v, b, n or m hit instead of it) are split back apart. Words the user insists on are
-//  remembered and never corrected again.
+//  remembered and never corrected again. The word before counts too: a correction that
+//  commonly follows it wins a close call.
 //
 
 #import <Foundation/Foundation.h>
@@ -24,6 +25,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// The correction for a finished word, or nil to leave it as typed. Safe to call off the main thread.
 - (nullable NSString*)correct:(NSString*)word;
+/// The same, using the word typed before it (or nil) to settle close calls.
+- (nullable NSString*)correct:(NSString*)word previous:(nullable NSString*)previous;
 
 @end
 
