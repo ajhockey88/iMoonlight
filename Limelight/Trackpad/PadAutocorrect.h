@@ -1,0 +1,29 @@
+//
+//  PadAutocorrect.h
+//  iMoonlight
+//
+//  iPhone-style autocorrect for the on-screen keyboard, ported from ThorPad: when a word is
+//  finished, an unknown word is swapped for the most likely intended word. Likelihood weighs
+//  how common a word is (words.txt) against how big a slip it would take to type it wrong,
+//  with neighbouring keys counting as small slips. Words the user insists on are remembered
+//  and never corrected again.
+//
+
+#import <Foundation/Foundation.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface PadAutocorrect : NSObject
+
+/// Shared instance; the word list loads in the background the first time.
++ (instancetype)shared;
+
+/// Remembers a word so it is never corrected.
+- (void)learn:(NSString*)word;
+
+/// The correction for a finished word, or nil to leave it as typed. Safe to call off the main thread.
+- (nullable NSString*)correct:(NSString*)word;
+
+@end
+
+NS_ASSUME_NONNULL_END

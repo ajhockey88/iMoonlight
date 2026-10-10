@@ -1,0 +1,77 @@
+name: Build IPA
+
+# Builds an unsigned iMoonlight.ipa for sideloading (AltStore, SideStore or Sideloadly re-sign it
+# with your own Apple ID). Every run uploads the IPA as a workflow artifact; pushes to main also
+# refresh the "latest" release so the newest IPA always has a stable download link.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build unsigned IPA
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build app (unsigned)
+        run: |
+          xcodebuild \
+            -project Moonlight.xcodeproj \
+            -scheme Moonlight \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build > xcodebuild.log 2>&1 || {
+              grep -n -A8 "error:" xcodebuild.log | head -300
+              tail -40 xcodebuild.log
+              exit 1
+            }
+          grep -E "(Trackpad/[A-Za-z]+|StreamView|StreamFrameViewController|SettingsViewController)\.m:[0-9]+:[0-9]+: warning" xcodebuild.log | sort -u || true
+          tail -3 xcodebuild.log
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/Moonlight.app Payload/
+          test -f Payload/Moonlight.app/words.txt
+          zip -qry iMoonlight.ipa Payload
+          ls -lh iMoonlight.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: iMoonlight-ipa
+          path: iMoonlight.ipa
+          if-no-files-found: error
+
+      - name: Publish "latest" release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest iMoonlight.ipa \
+            --title "iMoonlight (latest build)" \
+            --notes "Unsigned build of ${GITHUB_SHA::7}. Install with Sideloadly, AltStore or SideStore; see the README." \
+            --latest
