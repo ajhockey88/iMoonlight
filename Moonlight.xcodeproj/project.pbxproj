@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0641C52FE15815809ABBFE1E /* PadHaptics.m in Sources */ = {isa = PBXBuildFile; fileRef = F325347BEBA6E540DA2DB503 /* PadHaptics.m */; };
+		142723E08D87BB5F0D3B4169 /* words.txt in Resources */ = {isa = PBXBuildFile; fileRef = 04077268152A314C06173A67 /* words.txt */; };
+		474769DFB2F630E8C1AA3663 /* PadKeyboardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 248C55F1E2DC05D3D4D820F9 /* PadKeyboardView.m */; };
 		693B3A9B218638CD00982F7B /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 693B3A9A218638CD00982F7B /* Settings.bundle */; };
+		85C7EAE44FB3FAFD137885EE /* PadPanelView.m in Sources */ = {isa = PBXBuildFile; fileRef = 306A23343EEBD33570F2EE00 /* PadPanelView.m */; };
+		91B3026829803150F31DC0BC /* PadTrackpadView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9249A7F67F62EE335F053EA8 /* PadTrackpadView.m */; };
 		98181BE92791277400E43572 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98181BE82791275D00E43572 /* libSDL2.a */; };
 		98181BEB2791278F00E43572 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98181BEA2791278300E43572 /* libSDL2.a */; };
 		98181BED2791281100E43572 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 98181BEC2791281100E43572 /* CoreMotion.framework */; };
@@ -41,9 +46,13 @@
 		98CFB82F1CAD481B0048EF74 /* libmoonlight-common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98AB2E841CAD46840089BB98 /* libmoonlight-common.a */; };
 		98D5856D1C0EA79600F6CC00 /* TemporaryHost.m in Sources */ = {isa = PBXBuildFile; fileRef = 98D5856C1C0EA79600F6CC00 /* TemporaryHost.m */; };
 		98D585701C0ED0E800F6CC00 /* TemporarySettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 98D5856F1C0ED0E800F6CC00 /* TemporarySettings.m */; };
+		ADB5FD0CEDA2D8C69DDE6264 /* PadOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = 70916C8E29055584665FB989 /* PadOutput.m */; };
+		C0067C48665872D391313B01 /* PadSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4476BA863D9CB39F24EC376 /* PadSettingsViewController.m */; };
+		CF356BD8C60DDA3B8ACA3953 /* PadPcKeysView.m in Sources */ = {isa = PBXBuildFile; fileRef = 537DFE0339CA94D9A3BDE44D /* PadPcKeysView.m */; };
 		DC1F5A07206436B20037755F /* ConnectionHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DC1F5A06206436B20037755F /* ConnectionHelper.m */; };
 		F74BEF9C2C1A705600224667 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = F74BEF9B2C1A705600224667 /* OpenSSL */; };
 		F74BEFA42C1A80E400224667 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = F74BEFA32C1A80E400224667 /* OpenSSL */; };
+		F9952CA38D3CD4EAB6E411E8 /* PadAutocorrect.m in Sources */ = {isa = PBXBuildFile; fileRef = C72726A5C4F2E462D092B164 /* PadAutocorrect.m */; };
 		FB1A674D2131E65900507771 /* KeyboardSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = FB1A674C2131E65900507771 /* KeyboardSupport.m */; };
 		FB1A67602132419700507771 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FB1A675E2132419700507771 /* Main.storyboard */; };
 		FB1A67622132419A00507771 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FB1A67612132419A00507771 /* Assets.xcassets */; };
@@ -136,6 +145,7 @@
 		FBD349621A0089F6002D2A60 /* DataManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FBD349611A0089F6002D2A60 /* DataManager.m */; };
 		FBDE86E019F7A837001C18A8 /* UIComputerView.m in Sources */ = {isa = PBXBuildFile; fileRef = FBDE86DF19F7A837001C18A8 /* UIComputerView.m */; };
 		FBDE86E619F82297001C18A8 /* UIAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = FBDE86E519F82297001C18A8 /* UIAppView.m */; };
+		FDBC02BB4A041CE428169FFB /* PadSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C678178A07F5469DE33BFCC /* PadSettings.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -170,8 +180,19 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		04077268152A314C06173A67 /* words.txt */ = {isa = PBXFileReference; includeInIndex = 1; path = words.txt; sourceTree = "<group>"; };
+		0ED7029921C87D41423EE939 /* PadAutocorrect.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadAutocorrect.h; sourceTree = "<group>"; };
+		0FA06D982C09EA792F4937C5 /* PadTrackpadView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadTrackpadView.h; sourceTree = "<group>"; };
+		248C55F1E2DC05D3D4D820F9 /* PadKeyboardView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadKeyboardView.m; sourceTree = "<group>"; };
+		2C678178A07F5469DE33BFCC /* PadSettings.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadSettings.m; sourceTree = "<group>"; };
+		306A23343EEBD33570F2EE00 /* PadPanelView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadPanelView.m; sourceTree = "<group>"; };
+		41B8E8B8B99C0BD5F8B08760 /* PadKeyboardView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadKeyboardView.h; sourceTree = "<group>"; };
+		537DFE0339CA94D9A3BDE44D /* PadPcKeysView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadPcKeysView.m; sourceTree = "<group>"; };
 		566E9D2B2770B23A00EF7BFE /* Moonlight v1.7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Moonlight v1.7.xcdatamodel"; sourceTree = "<group>"; };
+		5CE9600961872927E37171C6 /* PadOutput.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadOutput.h; sourceTree = "<group>"; };
 		693B3A9A218638CD00982F7B /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		70916C8E29055584665FB989 /* PadOutput.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadOutput.m; sourceTree = "<group>"; };
+		9249A7F67F62EE335F053EA8 /* PadTrackpadView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadTrackpadView.m; sourceTree = "<group>"; };
 		9803CCAB254F9EAF00EE185E /* ConnectionCallbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionCallbacks.h; sourceTree = "<group>"; };
 		98132E8C20BC9A62007A053F /* Moonlight v1.1.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Moonlight v1.1.xcdatamodel"; sourceTree = "<group>"; };
 		98181BE82791275D00E43572 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = libs/SDL2/lib/iOS/libSDL2.a; sourceTree = "<group>"; };
@@ -212,9 +233,17 @@
 		98D5856C1C0EA79600F6CC00 /* TemporaryHost.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TemporaryHost.m; path = Database/TemporaryHost.m; sourceTree = "<group>"; };
 		98D5856E1C0ED0E800F6CC00 /* TemporarySettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TemporarySettings.h; path = Database/TemporarySettings.h; sourceTree = "<group>"; };
 		98D5856F1C0ED0E800F6CC00 /* TemporarySettings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TemporarySettings.m; path = Database/TemporarySettings.m; sourceTree = "<group>"; };
+		A345DE4644C20D53BE62361D /* PadHaptics.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadHaptics.h; sourceTree = "<group>"; };
+		AD4277F18A1B89BE194FB839 /* PadSettingsViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadSettingsViewController.h; sourceTree = "<group>"; };
+		AF6C3D170A41E3E2E480BA3F /* PadPanelView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadPanelView.h; sourceTree = "<group>"; };
+		C4476BA863D9CB39F24EC376 /* PadSettingsViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadSettingsViewController.m; sourceTree = "<group>"; };
+		C72726A5C4F2E462D092B164 /* PadAutocorrect.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadAutocorrect.m; sourceTree = "<group>"; };
+		CF0F2551DCDE6CF3889EE3CB /* PadPcKeysView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadPcKeysView.h; sourceTree = "<group>"; };
 		D4746EEA1CBC740C006FB401 /* Moonlight-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Moonlight-Bridging-Header.h"; path = "Input/Moonlight-Bridging-Header.h"; sourceTree = "<group>"; };
 		DC1F5A05206436B10037755F /* ConnectionHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionHelper.h; sourceTree = "<group>"; };
 		DC1F5A06206436B20037755F /* ConnectionHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionHelper.m; sourceTree = "<group>"; };
+		DD95D32D6C6C9842AC44014B /* PadSettings.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadSettings.h; sourceTree = "<group>"; };
+		F325347BEBA6E540DA2DB503 /* PadHaptics.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadHaptics.m; sourceTree = "<group>"; };
 		FB1A674B2131E65900507771 /* KeyboardSupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyboardSupport.h; sourceTree = "<group>"; };
 		FB1A674C2131E65900507771 /* KeyboardSupport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KeyboardSupport.m; sourceTree = "<group>"; };
 		FB1A67532132419700507771 /* Moonlight TV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Moonlight TV.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -365,6 +394,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6CFE65AC1C1F779649951333 /* Trackpad */ = {
+			isa = PBXGroup;
+			children = (
+				0ED7029921C87D41423EE939 /* PadAutocorrect.h */,
+				C72726A5C4F2E462D092B164 /* PadAutocorrect.m */,
+				A345DE4644C20D53BE62361D /* PadHaptics.h */,
+				F325347BEBA6E540DA2DB503 /* PadHaptics.m */,
+				41B8E8B8B99C0BD5F8B08760 /* PadKeyboardView.h */,
+				248C55F1E2DC05D3D4D820F9 /* PadKeyboardView.m */,
+				5CE9600961872927E37171C6 /* PadOutput.h */,
+				70916C8E29055584665FB989 /* PadOutput.m */,
+				AF6C3D170A41E3E2E480BA3F /* PadPanelView.h */,
+				306A23343EEBD33570F2EE00 /* PadPanelView.m */,
+				CF0F2551DCDE6CF3889EE3CB /* PadPcKeysView.h */,
+				537DFE0339CA94D9A3BDE44D /* PadPcKeysView.m */,
+				DD95D32D6C6C9842AC44014B /* PadSettings.h */,
+				2C678178A07F5469DE33BFCC /* PadSettings.m */,
+				AD4277F18A1B89BE194FB839 /* PadSettingsViewController.h */,
+				C4476BA863D9CB39F24EC376 /* PadSettingsViewController.m */,
+				0FA06D982C09EA792F4937C5 /* PadTrackpadView.h */,
+				9249A7F67F62EE335F053EA8 /* PadTrackpadView.m */,
+				04077268152A314C06173A67 /* words.txt */,
+			);
+			name = Trackpad;
+			path = Trackpad;
+			sourceTree = "<group>";
+		};
 		9896219423D15C2900211983 /* X1Kit */ = {
 			isa = PBXGroup;
 			children = (
@@ -469,6 +525,7 @@
 				FB1D59961BBCCB6400F482CA /* ComputerScrollView.m */,
 				FB1D59981BBCCD7E00F482CA /* AppCollectionView.h */,
 				FB1D59991BBCCD7E00F482CA /* AppCollectionView.m */,
+				6CFE65AC1C1F779649951333 /* Trackpad */,
 			);
 			name = Moonlight;
 			path = Limelight;
@@ -822,6 +879,7 @@
 				FB290E7B19B38036004C83CF /* iPhone.storyboard in Resources */,
 				FB290D0919B2C406004C83CF /* Images.xcassets in Resources */,
 				FB89463819F6473800339C8A /* Launch Screen.xib in Resources */,
+				142723E08D87BB5F0D3B4169 /* words.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -934,6 +992,15 @@
 				FB9AFD3A1A7E05CE00872C98 /* ServerInfoResponse.m in Sources */,
 				FB89463119F646E200339C8A /* StreamManager.m in Sources */,
 				988FCD41293B091B003050E2 /* KeyboardInputField.m in Sources */,
+				F9952CA38D3CD4EAB6E411E8 /* PadAutocorrect.m in Sources */,
+				0641C52FE15815809ABBFE1E /* PadHaptics.m in Sources */,
+				474769DFB2F630E8C1AA3663 /* PadKeyboardView.m in Sources */,
+				ADB5FD0CEDA2D8C69DDE6264 /* PadOutput.m in Sources */,
+				85C7EAE44FB3FAFD137885EE /* PadPanelView.m in Sources */,
+				CF356BD8C60DDA3B8ACA3953 /* PadPcKeysView.m in Sources */,
+				FDBC02BB4A041CE428169FFB /* PadSettings.m in Sources */,
+				C0067C48665872D391313B01 /* PadSettingsViewController.m in Sources */,
+				91B3026829803150F31DC0BC /* PadTrackpadView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1236,7 +1303,7 @@
 					"$(PROJECT_DIR)/libs/FFmpeg/lib/iOS-Sim",
 				);
 				MARKETING_VERSION = 9.0.2;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moonlight-stream.Moonlight";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ajhockey88.iMoonlight;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = NO;
@@ -1286,7 +1353,7 @@
 					"$(PROJECT_DIR)/libs/FFmpeg/lib/iOS-Sim",
 				);
 				MARKETING_VERSION = 9.0.2;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moonlight-stream.Moonlight";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ajhockey88.iMoonlight;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = NO;

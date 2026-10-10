@@ -143,9 +143,16 @@ BOOL isCustomResolution(CGSize res) {
     // Get the size of the screen with and without safe area insets
     UIWindow *window = UIApplication.sharedApplication.windows.firstObject;
     CGFloat screenScale = window.screen.scale;
-    CGFloat safeAreaWidth = (window.frame.size.width - window.safeAreaInsets.left - window.safeAreaInsets.right) * screenScale;
-    CGFloat fullScreenWidth = window.frame.size.width * screenScale;
-    CGFloat fullScreenHeight = window.frame.size.height * screenScale;
+    // Streams are always landscape, so measure the screen as if it were held sideways even
+    // when the phone is upright (the safe area insets then sit at the top and bottom).
+    BOOL upright = window.frame.size.height > window.frame.size.width;
+    CGFloat longSide = MAX(window.frame.size.width, window.frame.size.height);
+    CGFloat shortSide = MIN(window.frame.size.width, window.frame.size.height);
+    CGFloat longInsets = upright ? window.safeAreaInsets.top + window.safeAreaInsets.bottom
+                                 : window.safeAreaInsets.left + window.safeAreaInsets.right;
+    CGFloat safeAreaWidth = (longSide - longInsets) * screenScale;
+    CGFloat fullScreenWidth = longSide * screenScale;
+    CGFloat fullScreenHeight = shortSide * screenScale;
     
     self.resolutionDisplayView.layer.cornerRadius = 10;
     self.resolutionDisplayView.clipsToBounds = YES;

@@ -12,6 +12,11 @@
 #import "StreamManager.h"
 #import "ControllerSupport.h"
 #import "DataManager.h"
+#if !TARGET_OS_TV
+#import "PadPanelView.h"
+#import "PadSettings.h"
+#import "PadSettingsViewController.h"
+#endif
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -29,6 +34,11 @@
 @property(readonly, nonatomic) float refreshRate;
 - (id)initWithRefreshRate:(float)arg1 videoDynamicRange:(int)arg2;
 @end
+
+#if !TARGET_OS_TV
+@interface StreamFrameViewController () <UIGestureRecognizerDelegate, PadPanelViewDelegate>
+@end
+#endif
 
 @implementation StreamFrameViewController {
     ControllerSupport *_controllerSupport;
@@ -50,6 +60,10 @@
     
 #if !TARGET_OS_TV
     UIScreenEdgePanGestureRecognizer *_exitSwipeRecognizer;
+    
+    // Portrait layout: the stream on top, the trackpad and keyboard underneath.
+    PadPanelView *_padPanel;
+    BOOL _portraitLayout;
 #endif
 }
 
@@ -107,7 +121,12 @@
     _controllerSupport = [[ControllerSupport alloc] initWithConfig:self.streamConfig delegate:self];
     _inactivityTimer = nil;
     
-    _streamView = [[StreamView alloc] initWithFrame:self.view.frame];
+    // Start the stream view landscape-shaped even if the phone is held upright: the on-screen
+    // controls lay themselves out once, for landscape, and the portrait layout hides them.
+    CGRect landscapeFrame = CGRectMake(0, 0,
+                                       MAX(self.view.frame.size.width, self.view.frame.size.height),
+                                       MIN(self.view.frame.size.width, self.view.frame.size.height));
+    _streamView = [[StreamView alloc] initWithFrame:landscapeFrame];
     [_streamView setupStreamView:_controllerSupport interactionDelegate:self config:self.streamConfig];
     
 #if TARGET_OS_TV
@@ -133,6 +152,7 @@
     _exitSwipeRecognizer.edges = UIRectEdgeLeft;
     _exitSwipeRecognizer.delaysTouchesBegan = NO;
     _exitSwipeRecognizer.delaysTouchesEnded = NO;
+    _exitSwipeRecognizer.delegate = self;
     
     [self.view addGestureRecognizer:_exitSwipeRecognizer];
 #endif
@@ -188,7 +208,7 @@
     
     // Only enable scroll and zoom in absolute touch mode
     if (_settings.absoluteTouchMode) {
-        _scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];
+        _scrollView = [[UIScrollView alloc] initWithFrame:landscapeFrame];
 #if !TARGET_OS_TV
         [_scrollView.panGestureRecognizer setMinimumNumberOfTouches:2];
 #endif
@@ -209,7 +229,123 @@
     [self.view addSubview:_stageLabel];
     [self.view addSubview:_spinner];
     [self.view addSubview:_tipLabel];
+    
+#if !TARGET_OS_TV
+    _padPanel = [[PadPanelView alloc] initWithFrame:CGRectZero];
+    _padPanel.delegate = self;
+    _padPanel.hidden = YES;
+    [self.view addSubview:_padPanel];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(padSettingsChanged:)
+                                                 name:PadSettingsChangedNotification
+                                               object:nil];
+#endif
 }
+
+#if !TARGET_OS_TV
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    [self layoutForCurrentOrientation];
+}
+
+- (void)padSettingsChanged:(NSNotification *)notification {
+    [self.view setNeedsLayout];
+}
+
+// Landscape: the stream fills the screen, as in Moonlight.
+// Portrait (iPhone): the stream fills the width at the top, and the trackpad with its
+// keyboard fills the rest, like ThorPad on the AYN Thor's bottom screen.
+- (void)layoutForCurrentOrientation {
+    CGRect bounds = self.view.bounds;
+    UIView *streamContainer = _scrollView != nil ? _scrollView : _streamView;
+    BOOL portrait = bounds.size.height > bounds.size.width &&
+        [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone;
+    
+    if (portrait != _portraitLayout) {
+        _portraitLayout = portrait;
+        [_padPanel resetInput];
+        [_streamView setOnScreenControlsSuppressed:portrait];
+        _padPanel.hidden = !portrait;
+        if (_scrollView != nil) {
+            [_scrollView setZoomScale:1.0f animated:NO];
+        }
+    }
+    
+    CGRect streamFrame;
+    if (portrait) {
+        UIEdgeInsets safe = self.view.safeAreaInsets;
+        float aspect = (float)self.streamConfig.width / (float)self.streamConfig.height;
+        CGFloat usableHeight = bounds.size.height - safe.top - safe.bottom;
+        // Keep at least a usable trackpad below a very tall stream.
+        CGFloat videoHeight = MIN(round(bounds.size.width / aspect), usableHeight * 0.6);
+        CGFloat panelHeight = usableHeight - videoHeight;
+        if ([PadSettings swapScreens]) {
+            _padPanel.frame = CGRectMake(0, safe.top, bounds.size.width, panelHeight);
+            streamFrame = CGRectMake(0, safe.top + panelHeight, bounds.size.width, videoHeight);
+        }
+        else {
+            streamFrame = CGRectMake(0, safe.top, bounds.size.width, videoHeight);
+            _padPanel.frame = CGRectMake(0, safe.top + videoHeight, bounds.size.width, panelHeight);
+        }
+    }
+    else {
+        streamFrame = bounds;
+    }
+    
+    if (!CGRectEqualToRect(streamContainer.frame, streamFrame)) {
+        if (_scrollView != nil) {
+            [_scrollView setZoomScale:1.0f animated:NO];
+            _scrollView.frame = streamFrame;
+            _streamView.frame = _scrollView.bounds;
+            _scrollView.contentSize = _streamView.frame.size;
+        }
+        else {
+            _streamView.frame = streamFrame;
+        }
+    }
+    
+    // Keep the connection progress centered on the stream.
+    CGPoint center = CGPointMake(CGRectGetMidX(streamFrame), CGRectGetMidY(streamFrame));
+    _stageLabel.center = center;
+    _spinner.center = CGPointMake(center.x, center.y - _stageLabel.frame.size.height - _spinner.frame.size.height);
+    _tipLabel.center = CGPointMake(center.x, CGRectGetMinY(streamFrame) + streamFrame.size.height * 0.9);
+    if (portrait) {
+        _tipLabel.text = @"Tip: tap Disconnect below to end the stream";
+    }
+    else {
+        _tipLabel.text = @"Tip: Swipe from the left edge to disconnect from your PC";
+    }
+    [_tipLabel sizeToFit];
+    _tipLabel.center = CGPointMake(center.x, CGRectGetMinY(streamFrame) + streamFrame.size.height * 0.9);
+    
+    [self.view bringSubviewToFront:_padPanel];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    // The trackpad has its own swipes; only the stream area's left edge ends the stream.
+    if (gestureRecognizer == _exitSwipeRecognizer && !_padPanel.hidden) {
+        return !CGRectContainsPoint(_padPanel.frame, [touch locationInView:self.view]);
+    }
+    return YES;
+}
+
+- (void)padPanelWantsSettings:(PadPanelView *)panel {
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[PadSettingsViewController alloc] init]];
+    nav.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+    [self presentViewController:nav animated:YES completion:nil];
+}
+
+- (void)padPanelWantsDisconnect:(PadPanelView *)panel {
+    Log(LOG_I, @"User tapped Disconnect on the trackpad");
+    [self returnToMainFrame];
+}
+
+// No three-finger copy / paste / undo gestures while streaming: three-finger swipes are trackpad gestures.
+- (UIEditingInteractionConfiguration)editingInteractionConfiguration API_AVAILABLE(ios(13.0)) {
+    return UIEditingInteractionConfigurationNone;
+}
+#endif
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView {
     return _streamView;
@@ -306,6 +442,11 @@
 }
 
 - (void) returnToMainFrame {
+#if !TARGET_OS_TV
+    // Let go of anything the trackpad is holding down on the PC
+    [_padPanel resetInput];
+#endif
+    
     // Reset display mode back to default
     [self updatePreferredDisplayMode:NO];
     

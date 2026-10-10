@@ -15,6 +15,8 @@
 #import "AbsoluteTouchHandler.h"
 #import "KeyboardInputField.h"
 
+#import <AVFoundation/AVFoundation.h>
+
 static const double X1_MOUSE_SPEED_DIVISOR = 2.5;
 
 @implementation StreamView {
@@ -44,6 +46,9 @@ static const double X1_MOUSE_SPEED_DIVISOR = 2.5;
     BOOL hasUserInteracted;
     
     NSDictionary<NSString *, NSNumber *> *dictCodes;
+    
+    BOOL oscSuppressed;
+    OnScreenControlsLevel suppressedOscLevel;
 }
 
 - (void) setupStreamView:(ControllerSupport*)controllerSupport
@@ -165,6 +170,39 @@ static const double X1_MOUSE_SPEED_DIVISOR = 2.5;
 #if !TARGET_OS_TV
     [onScreenControls show];
 #endif
+}
+
+- (void) setOnScreenControlsSuppressed:(BOOL)suppressed {
+#if !TARGET_OS_TV
+    if (onScreenControls == nil || suppressed == oscSuppressed) {
+        return;
+    }
+    oscSuppressed = suppressed;
+    if (suppressed) {
+        suppressedOscLevel = [onScreenControls getLevel];
+        [onScreenControls setLevel:OnScreenControlsLevelOff];
+    }
+    else {
+        [onScreenControls setLevel:suppressedOscLevel];
+    }
+#endif
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    // Keep the video aspect-fit and centered when the view changes size, e.g. when
+    // rotating between the landscape layout and the portrait trackpad layout.
+    CGSize videoSize = [self getVideoAreaSize];
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    for (CALayer* layer in self.layer.sublayers) {
+        if ([layer isKindOfClass:[AVSampleBufferDisplayLayer class]]) {
+            layer.position = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
+            layer.bounds = CGRectMake(0, 0, videoSize.width, videoSize.height);
+        }
+    }
+    [CATransaction commit];
 }
 
 - (OnScreenControlsLevel) getCurrentOscState {

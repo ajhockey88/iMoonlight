@@ -30,6 +30,10 @@
 - (void) showOnScreenControls;
 - (OnScreenControlsLevel) getCurrentOscState;
 
+// Hides the on-screen gamepad while the portrait trackpad layout is in use,
+// and brings back the previous level afterwards.
+- (void) setOnScreenControlsSuppressed:(BOOL)suppressed;
+
 #if !TARGET_OS_TV
 - (void) updateCursorLocation:(CGPoint)location isMouse:(BOOL)isMouse;
 #endif
