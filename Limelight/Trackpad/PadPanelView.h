@@ -6,7 +6,8 @@
 //  (Keyboard, PC keys, Video off, Settings, Disconnect) over the trackpad. The keyboard takes
 //  the iPhone keyboard's height along the bottom, with the trackpad still usable above it;
 //  PC keys cover the whole panel. Side by side (sideways with video off), the keyboard fills
-//  the left side, top to bottom, and the bar and trackpad sit on the right.
+//  most of the screen on the left, top to bottom, and the trackpad the rest on the right,
+//  without its hints. The bar stays hidden until a swipe down from the top of the trackpad.
 //
 
 #import <UIKit/UIKit.h>

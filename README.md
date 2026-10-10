@@ -15,7 +15,8 @@ Hold the phone upright while streaming. Along the top of the trackpad is a bar w
 
 **🚫 Video off** stops the picture but stays connected, so the trackpad and keyboard keep
 controlling the PC and the trackpad takes over the whole screen. Turn the phone sideways
-while the video is off and the keyboard fills the left side with the trackpad on the right.
+while the video is off and the keyboard fills most of the screen, with a narrow trackpad on
+the right; swipe down from the top of the trackpad to show the bar.
 **🎥 Video on** brings the picture back.
 
 | On the trackpad | On the PC |
@@ -42,7 +43,8 @@ Every action gives a haptic tap.
   lock. Hold ⌫ to keep deleting; while you hold it, the space bar turns red and says
   **Clear all** (Ctrl+A, then Backspace). **✕ Close** returns to the trackpad.
 - ✨ **Autocorrect** (on by default) fixes a misspelled word when you finish it with a space or
-  punctuation. While you type, the strip shows "→ correction"; tap it to keep your spelling.
+  punctuation, and splits words run together by a missed space bar ("helloworld" or
+  "hellobworld" becomes "hello world"). While you type, the strip shows "→ correction"; tap it to keep your spelling.
   Backspace right after a correction undoes it. Either way the word is remembered and not
   corrected again.
 - 🖥️ **PC keys**: Esc, F1 to F12, Alt+Tab, Win+Tab, Win+D, Alt+F4, Ctrl+Shift+Esc, Print Screen,

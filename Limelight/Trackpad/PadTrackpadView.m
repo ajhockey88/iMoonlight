@@ -64,6 +64,7 @@ static const CGFloat ZOOM_STEP_PT = 60;
         _touches = [NSMutableArray array];
         _state = PadStateDone;
         _active = YES;
+        _showHints = YES;
         self.multipleTouchEnabled = YES;
         self.backgroundColor = [UIColor blackColor];
         self.contentMode = UIViewContentModeRedraw;
@@ -102,7 +103,9 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
                 : [UIColor colorWithWhite:1 alpha:40/255.0]) setStroke];
     [path stroke];
 
-    [self drawHints];
+    if (_showHints) {
+        [self drawHints];
+    }
 
     if (_note.length > 0) {
         NSDictionary* attrs = @{NSFontAttributeName: [UIFont systemFontOfSize:13],
@@ -111,6 +114,12 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
         [_note drawAtPoint:CGPointMake(CGRectGetMidX(self.bounds) - size.width / 2, self.bounds.size.height * 0.35 - size.height / 2)
             withAttributes:attrs];
     }
+}
+
+- (void)setShowHints:(BOOL)showHints {
+    if (_showHints == showHints) return;
+    _showHints = showHints;
+    [self setNeedsDisplay];
 }
 
 - (void)setNote:(NSString*)note {

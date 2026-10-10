@@ -5,8 +5,9 @@
 //  iPhone-style autocorrect for the on-screen keyboard, ported from ThorPad: when a word is
 //  finished, an unknown word is swapped for the most likely intended word. Likelihood weighs
 //  how common a word is (words.txt) against how big a slip it would take to type it wrong,
-//  with neighbouring keys counting as small slips. Words the user insists on are remembered
-//  and never corrected again.
+//  with neighbouring keys counting as small slips. Words run together by a missed space bar
+//  (or a c, v, b, n or m hit instead of it) are split back apart. Words the user insists on are
+//  remembered and never corrected again.
 //
 
 #import <Foundation/Foundation.h>

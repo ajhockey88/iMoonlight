@@ -13,6 +13,8 @@ static KeyPos keyPositions[26];
 static void edits(NSString* w, float base, NSMutableDictionary<NSString*, NSNumber*>* out,
                   NSDictionary<NSString*, NSNumber*>* knownOnly);
 static NSString* matchCase(NSString* typed, NSString* fix);
+static NSString* splitRunTogether(NSString* w, NSDictionary<NSString*, NSNumber*>* freq,
+                                  NSDictionary<NSString*, NSString*>* contractions);
 
 @implementation PadAutocorrect {
     NSDictionary<NSString*, NSNumber*>* _freq;
@@ -117,6 +119,7 @@ static NSString* matchCase(NSString* typed, NSString* fix);
 
     __block NSString* bestWord = nil;
     __block float bestScore = -1e9f;
+    __block float bestCost = 0;
     void (^consider)(NSString*, float) = ^(NSString* candidate, float cost) {
         NSNumber* f = freq[candidate];
         if (f == nil || f.intValue < 20) return; // ignore very rare words as corrections
@@ -125,6 +128,7 @@ static NSString* matchCase(NSString* typed, NSString* fix);
         if (score > bestScore) {
             bestScore = score;
             bestWord = candidate;
+            bestCost = cost;
         }
     };
 
@@ -138,7 +142,81 @@ static NSString* matchCase(NSString* typed, NSString* fix);
         }];
         [second enumerateKeysAndObjectsUsingBlock:^(NSString* k, NSNumber* v, BOOL* stop) { consider(k, v.floatValue); }];
     }
+    // Words run together by a missed space beat anything but an easy one-slip fix.
+    NSString* split = lw.length >= 4 ? splitRunTogether(lw, freq, _contractions) : nil;
+    if (split != nil && (bestWord == nil || bestCost > 0.5f)) {
+        return matchCase(word, split);
+    }
     return bestWord == nil ? nil : matchCase(word, bestWord);
+}
+
+/// Can stand alone as one of the words in a split: common enough that a split is safe.
+static BOOL splitPiece(NSString* piece, NSDictionary<NSString*, NSNumber*>* freq,
+                       NSDictionary<NSString*, NSString*>* contractions, int* f) {
+    NSUInteger n = piece.length;
+    if (n > 1 && contractions[piece] != nil) {
+        *f = 60; // "im", "dont"...: typed without the apostrophe, as usual
+        return YES;
+    }
+    if (n == 1 && ![piece isEqualToString:@"a"] && ![piece isEqualToString:@"i"]) return NO;
+    NSNumber* v = freq[piece];
+    if (v == nil) return NO;
+    *f = v.intValue;
+    return *f >= (n <= 2 ? 55 : 40);
+}
+
+/// "helloworld" or "hellobworld" (a key next to the space bar hit instead of it) as
+/// "hello world": the fewest common words w can be cut into (the most common on a tie), or nil.
+static NSString* splitRunTogether(NSString* w, NSDictionary<NSString*, NSNumber*>* freq,
+                                  NSDictionary<NSString*, NSString*>* contractions) {
+    NSUInteger n = w.length;
+    if (n > 40) return nil;
+    const int MAX_PIECES = 4;
+    const float NONE = -1e9f;
+    // best[i][k]: best score for w[0..i) cut into k pieces, ending at a piece boundary.
+    float best[41][MAX_PIECES + 1];
+    NSInteger from[41][MAX_PIECES + 1];
+    for (NSUInteger i = 0; i <= n; i++) for (int k = 0; k <= MAX_PIECES; k++) best[i][k] = NONE;
+    best[0][0] = 0;
+    NSCharacterSet* nearSpace = [NSCharacterSet characterSetWithCharactersInString:@"cvbnm"];
+    for (NSUInteger i = 0; i < n; i++) {
+        for (int k = 0; k < MAX_PIECES; k++) {
+            if (best[i][k] == NONE) continue;
+            // The next piece starts right here (missed space), or one letter later when that
+            // letter sits next to the space bar (hit instead of it).
+            for (int skip = 0; skip <= 1; skip++) {
+                if (skip == 1 && (k == 0 || ![nearSpace characterIsMember:[w characterAtIndex:i]])) continue;
+                NSUInteger start = i + skip;
+                for (NSUInteger end = start + 1; end <= n; end++) {
+                    int f;
+                    if (!splitPiece([w substringWithRange:NSMakeRange(start, end - start)], freq, contractions, &f)) continue;
+                    float score = best[i][k] + f - 20 * skip;
+                    if (score > best[end][k + 1]) {
+                        best[end][k + 1] = score;
+                        from[end][k + 1] = (NSInteger)(i * 2 + skip);
+                    }
+                }
+            }
+        }
+    }
+    // Fewest pieces wins: "hellonworld" is one slip from "hello world", two from "hell on world".
+    int bestK = 0;
+    for (int k = 2; k <= MAX_PIECES && bestK == 0; k++) {
+        if (best[n][k] != NONE) bestK = k;
+    }
+    if (bestK == 0) return nil;
+    NSMutableArray<NSString*>* pieces = [NSMutableArray array];
+    NSUInteger end = n;
+    for (int k = bestK; k > 0; k--) {
+        NSInteger back = from[end][k];
+        NSUInteger i = (NSUInteger)(back / 2), start = i + (NSUInteger)(back % 2);
+        NSString* piece = [w substringWithRange:NSMakeRange(start, end - start)];
+        if ([piece isEqualToString:@"i"]) piece = @"I";
+        else if (contractions[piece] != nil) piece = contractions[piece];
+        [pieces insertObject:piece atIndex:0];
+        end = i;
+    }
+    return [pieces componentsJoinedByString:@" "];
 }
 
 /// Records s with the cheapest cost of the slip that explains it. With a word list, keeps
