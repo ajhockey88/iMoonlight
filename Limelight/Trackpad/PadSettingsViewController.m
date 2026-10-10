@@ -53,7 +53,9 @@ enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionHaptics, SectionC
               [PadSettingRow toggle:@"Classic scroll direction" detail:@"Fingers down scrolls down, like a mouse wheel" key:PadKeyInvertScroll]],
             @[[PadSettingRow toggle:@"Swap screens" detail:@"Trackpad on top, stream underneath" key:PadKeySwapScreens],
               [PadSettingRow toggle:@"Dim when idle" detail:@"After 30 seconds without a touch the trackpad dims; the next touch only wakes it" key:PadKeyDimWhenIdle]],
-            @[[PadSettingRow toggle:@"Autocorrect" detail:@"Fixes a misspelled word when you finish it. Tap the suggestion to keep your spelling" key:PadKeyAutocorrect],
+            @[[PadSettingRow toggle:@"Autocorrect" detail:@"Fixes misspelled and run-together words when you finish them. Tap the suggestion to keep your spelling" key:PadKeyAutocorrect],
+              [PadSettingRow toggle:@"Auto-capitalization" detail:@"Capital letter at the start of each sentence" key:PadKeyAutoCapitalize],
+              [PadSettingRow toggle:@"\".\" shortcut" detail:@"Tapping space twice types a period and a space" key:PadKeyDoubleSpacePeriod],
               [PadSettingRow toggle:@"Type when the finger lifts" detail:@"Lets you slide onto the right key before it types" key:PadKeyTypeOnRelease]],
             @[],
         ];

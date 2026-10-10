@@ -16,8 +16,83 @@ static NSString* matchCase(NSString* typed, NSString* fix);
 static NSString* splitRunTogether(NSString* w, NSDictionary<NSString*, NSNumber*>* freq,
                                   NSDictionary<NSString*, NSString*>* contractions);
 
+/// Words that commonly come next, most likely first: the context that settles close
+/// autocorrect calls. Written for this keyboard from common English usage.
+static NSString* const NEXT_WORDS =
+    @"i\tam will have think don't can was just love know want need\n"
+    @"i'm\tgoing not so sure just in on at here\n"
+    @"you\tare can have know want for to need will guys\n"
+    @"we\tare can have will need should were\n"
+    @"they\tare were have will can don't\n"
+    @"he\tis was said has will\n"
+    @"she\tis was said has will\n"
+    @"it\tis was will would\n"
+    @"it's\tnot a the just going\n"
+    @"that\tis was the it you\n"
+    @"this\tis was one time week\n"
+    @"what\tis are do the time you\n"
+    @"how\tare is do much many about\n"
+    @"where\tis are do did\n"
+    @"when\tyou i the is we\n"
+    @"why\tis do are not did\n"
+    @"who\tis are was\n"
+    @"can\tyou i we be\n"
+    @"could\tyou be have not\n"
+    @"would\tyou be have like\n"
+    @"should\tbe i we have\n"
+    @"will\tbe you have\n"
+    @"do\tyou not it this\n"
+    @"don't\tknow have want think\n"
+    @"did\tyou not it\n"
+    @"is\tit the a not that\n"
+    @"are\tyou we they the\n"
+    @"was\ta the it not\n"
+    @"have\ta to you been the\n"
+    @"has\tbeen a to\n"
+    @"had\ta to been\n"
+    @"be\ta the able there\n"
+    @"been\ta the working\n"
+    @"to\tthe be do get go see make\n"
+    @"of\tthe a my this it\n"
+    @"in\tthe a my this\n"
+    @"on\tthe a my it\n"
+    @"at\tthe a home work\n"
+    @"for\tthe a you me\n"
+    @"with\tthe a you me\n"
+    @"from\tthe a my\n"
+    @"about\tthe it that\n"
+    @"and\tthe i it then\n"
+    @"but\ti it the\n"
+    @"or\tnot the\n"
+    @"so\ti much it\n"
+    @"if\tyou i it\n"
+    @"thank\tyou\n"
+    @"thanks\tfor\n"
+    @"see\tyou it the\n"
+    @"let\tme us\n"
+    @"let's\tgo do see\n"
+    @"going\tto\n"
+    @"want\tto\n"
+    @"need\tto\n"
+    @"good\tmorning night luck job\n"
+    @"how's\tit\n"
+    @"what's\tup the\n"
+    @"a\tlot few little good new\n"
+    @"the\tsame best first\n"
+    @"my\tname own\n"
+    @"your\town name\n"
+    @"just\ta the\n"
+    @"not\tsure a the\n"
+    @"no\tproblem worries\n"
+    @"right\tnow\n"
+    @"talk\tto\n"
+    @"look\tat\n"
+    @"looking\tforward for at\n"
+    @"sounds\tgood\n";
+
 @implementation PadAutocorrect {
     NSDictionary<NSString*, NSNumber*>* _freq;
+    NSDictionary<NSString*, NSArray<NSString*>*>* _next;
     NSMutableSet<NSString*>* _learned;
     NSDictionary<NSString*, NSString*>* _contractions;
 }
@@ -64,6 +139,18 @@ static NSString* splitRunTogether(NSString* w, NSDictionary<NSString*, NSNumber*
     for (NSUInteger i = 0; i < pairs.count; i += 2) contractions[pairs[i]] = pairs[i + 1];
     _contractions = contractions;
 
+    NSMutableDictionary* next = [NSMutableDictionary dictionary];
+    for (NSString* line in [NEXT_WORDS componentsSeparatedByString:@"\n"]) {
+        NSArray<NSString*>* parts = [line componentsSeparatedByString:@"\t"];
+        if (parts.count != 2) continue;
+        NSMutableArray* words = [NSMutableArray array];
+        for (NSString* w in [parts[1] componentsSeparatedByString:@" "]) {
+            if (w.length > 0) [words addObject:w];
+        }
+        if (words.count > 0) next[parts[0]] = words;
+    }
+    _next = next;
+
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
         [self load];
     });
@@ -99,6 +186,14 @@ static NSString* splitRunTogether(NSString* w, NSDictionary<NSString*, NSNumber*
 }
 
 - (nullable NSString*)correct:(NSString*)word {
+    return [self correct:word previous:nil];
+}
+
+- (BOOL)word:(NSString*)w follows:(nullable NSString*)previous {
+    return previous != nil && [_next[previous.lowercaseString] containsObject:w];
+}
+
+- (nullable NSString*)correct:(NSString*)word previous:(nullable NSString*)previous {
     if (word.length == 0) return nil;
     NSString* lw = word.lowercaseString;
     for (NSUInteger i = 0; i < lw.length; i++) {
@@ -125,6 +220,8 @@ static NSString* splitRunTogether(NSString* w, NSDictionary<NSString*, NSNumber*
         if (f == nil || f.intValue < 20) return; // ignore very rare words as corrections
         // Frequency counts, but not so much that a common short word beats an obvious slip.
         float score = 0.6f * (f.intValue / 10.0f) - 3.0f * cost;
+        // Context: a word that commonly follows the one before settles a close call.
+        if ([self word:candidate follows:previous]) score += 2.0f;
         if (score > bestScore) {
             bestScore = score;
             bestWord = candidate;

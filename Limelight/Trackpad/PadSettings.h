@@ -18,6 +18,8 @@ extern NSString* const PadKeySwapScreens;
 extern NSString* const PadKeyDimWhenIdle;
 extern NSString* const PadKeyAutocorrect;
 extern NSString* const PadKeyTypeOnRelease;
+extern NSString* const PadKeyAutoCapitalize;
+extern NSString* const PadKeyDoubleSpacePeriod;
 
 /// Posted when any trackpad setting changes.
 extern NSString* const PadSettingsChangedNotification;
@@ -42,6 +44,10 @@ extern NSString* const PadSettingsChangedNotification;
 + (BOOL)autocorrect;
 /// Keyboard: type when the finger lifts instead of when it lands.
 + (BOOL)typeOnRelease;
+/// Keyboard: capital letter at the start of a sentence.
++ (BOOL)autoCapitalize;
+/// Keyboard: two spaces type ". ".
++ (BOOL)doubleSpacePeriod;
 
 + (float)floatForKey:(NSString*)key;
 + (void)setFloat:(float)value forKey:(NSString*)key;

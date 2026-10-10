@@ -21,6 +21,8 @@ static const NSTimeInterval REPEAT_DELAY = 0.400, REPEAT_EVERY = 0.055;
 static const NSTimeInterval CAPS_LOCK_DOUBLE_TAP = 0.350;
 static const NSTimeInterval FLASH = 0.090;
 static const CGFloat STRIP_HEIGHT = 44;
+/// Two taps of space this close together type ". ".
+static const NSTimeInterval DOUBLE_SPACE = 0.8;
 
 static UIColor* rgb(int r, int g, int b) {
     return [UIColor colorWithRed:r / 255.0 green:g / 255.0 blue:b / 255.0 alpha:1];
@@ -95,6 +97,11 @@ static NSArray<PadKey*>* bottomRow(NSString* pageLabel, NSInteger target) {
     PadKey* _repeating;
     PadKey* _flash;
     BOOL _typeOnRelease;
+    BOOL _autoCapitalize;
+    BOOL _doubleSpacePeriod;
+    /// Shift was turned on for a new sentence, not by the user.
+    BOOL _autoShifted;
+    NSTimeInterval _lastSpaceAt;
 
     // Autocorrect: the suggestion for the word being typed is worked out in the background
     // and shown in the strip; tapping the strip keeps the word as typed.
@@ -149,6 +156,8 @@ static NSArray<PadKey*>* bottomRow(NSString* pageLabel, NSInteger target) {
 
 - (void)applySettings {
     _typeOnRelease = [PadSettings typeOnRelease];
+    _autoCapitalize = [PadSettings autoCapitalize];
+    _doubleSpacePeriod = [PadSettings doubleSpacePeriod];
     PadAutocorrect* ac = [PadSettings autocorrect] ? [PadAutocorrect shared] : nil;
     if (ac != _autocorrect) {
         _autocorrect = ac;
@@ -162,6 +171,8 @@ static NSArray<PadKey*>* bottomRow(NSString* pageLabel, NSInteger target) {
     _fixOriginal = nil;
     _page = PageLetters;
     _shift = 0;
+    _autoShifted = NO;
+    [self updateAutoShift];
     [self cancelTouches];
     [self setNeedsDisplay];
 }
@@ -435,6 +446,48 @@ static BOOL isWordChar(unichar c) {
     return w;
 }
 
+/// The word before the current one, across spaces only (so not across a sentence end).
+- (NSString*)previousWord {
+    NSUInteger i = _typed.length;
+    while (i > 0 && isWordChar([_typed characterAtIndex:i - 1])) i--;
+    NSUInteger end = i;
+    while (end > 0 && [_typed characterAtIndex:end - 1] == ' ') end--;
+    if (end == i || end == 0 || !isWordChar([_typed characterAtIndex:end - 1])) return nil;
+    NSUInteger start = end;
+    while (start > 0 && isWordChar([_typed characterAtIndex:start - 1])) start--;
+    return [_typed substringWithRange:NSMakeRange(start, end - start)];
+}
+
+/// At the start of a sentence: nothing typed yet, or after a new line or ". ", "! ", "? ".
+- (BOOL)atSentenceStart {
+    NSUInteger n = _typed.length;
+    if (n == 0 || [_typed characterAtIndex:n - 1] == '\n') return YES;
+    if ([_typed characterAtIndex:n - 1] != ' ') return NO;
+    NSUInteger i = n;
+    while (i > 0 && [_typed characterAtIndex:i - 1] == ' ') i--;
+    if (i == 0) return YES;
+    unichar c = [_typed characterAtIndex:i - 1];
+    return c == '.' || c == '!' || c == '?';
+}
+
+/// Shift on for one letter at the start of a sentence, and off again if that no longer holds.
+- (void)updateAutoShift {
+    if (_shift == 2) {
+        _autoShifted = NO;
+        return;
+    }
+    BOOL want = _autoCapitalize && _page == PageLetters && [self atSentenceStart];
+    if (want && _shift == 0) {
+        _shift = 1;
+        _autoShifted = YES;
+    } else if (!want && _autoShifted && _shift == 1) {
+        _shift = 0;
+        _autoShifted = NO;
+    } else if (_shift == 0) {
+        _autoShifted = NO;
+    }
+}
+
 - (void)typeText:(NSString*)s {
     [_typed appendString:s];
     if (_typed.length > 200) [_typed deleteCharactersInRange:NSMakeRange(0, _typed.length - 200)];
@@ -453,7 +506,7 @@ static BOOL isWordChar(unichar c) {
     NSString* word = [self currentWord];
     NSString* fix = nil;
     if (_autocorrect != nil && word.length > 0) {
-        fix = [word isEqualToString:_suggestionFor] ? _suggestion : [_autocorrect correct:word];
+        fix = [word isEqualToString:_suggestionFor] ? _suggestion : [_autocorrect correct:word previous:[self previousWord]];
     }
     [self clearSuggestion];
     if (fix == nil || [fix isEqualToString:word]) return;
@@ -504,12 +557,13 @@ static BOOL isWordChar(unichar c) {
         [self setNeedsDisplay];
     }
     PadAutocorrect* ac = _autocorrect;
+    NSString* previous = [self previousWord];
     NSUInteger generation = ++_acGeneration;
     __weak PadKeyboardView* weakSelf = self;
     dispatch_async(_acQueue, ^{
         PadKeyboardView* check = weakSelf;
         if (check == nil || check->_acGeneration != generation) return; // superseded already
-        NSString* fix = [ac correct:word];
+        NSString* fix = [ac correct:word previous:previous];
         dispatch_async(dispatch_get_main_queue(), ^{
             PadKeyboardView* strongSelf = weakSelf;
             if (strongSelf == nil || strongSelf->_acGeneration != generation) return;
@@ -571,7 +625,9 @@ static BOOL isWordChar(unichar c) {
             else if (_shift == 1 && now - _lastShiftTap < CAPS_LOCK_DOUBLE_TAP) _shift = 2;
             else _shift = 0;
             _lastShiftTap = now;
-            break;
+            _autoShifted = NO;
+            [self setNeedsDisplay];
+            return; // the user's choice: no auto-capitalization until the next key
         }
         case PadKeyBackspace:
             if (undoable && [self undoCorrection]) break;
@@ -592,17 +648,36 @@ static BOOL isWordChar(unichar c) {
             break;
         case PadKeySpace:
         case PadKeyChar: {
+            if (k.type == PadKeySpace && [self doubleSpaceToPeriod]) break;
             unichar c = k.ch;
             if (_page == PageLetters && _shift > 0 && c >= 'a' && c <= 'z') c -= 'a' - 'A';
             NSString* s = [NSString stringWithCharacters:&c length:1];
             if (isBoundary(c)) [self autocorrectWord:s];
             [self typeText:s];
             if (_shift == 1 && k.type == PadKeyChar) _shift = 0;
+            if (k.type == PadKeySpace) _lastSpaceAt = [NSProcessInfo processInfo].systemUptime;
             [self updateSuggestion];
             break;
         }
     }
+    [self updateAutoShift];
     [self setNeedsDisplay];
+}
+
+/// A second quick space after a word turns the first into ". ", like the iPhone.
+- (BOOL)doubleSpaceToPeriod {
+    NSTimeInterval now = [NSProcessInfo processInfo].systemUptime;
+    NSUInteger n = _typed.length;
+    if (!_doubleSpacePeriod || now - _lastSpaceAt > DOUBLE_SPACE || n < 2) return NO;
+    if ([_typed characterAtIndex:n - 1] != ' ') return NO;
+    unichar before = [_typed characterAtIndex:n - 2];
+    if (![[NSCharacterSet alphanumericCharacterSet] characterIsMember:before]) return NO;
+    _lastSpaceAt = 0; // a third space is just a space
+    _fixOriginal = nil;
+    [self deleteChars:1];
+    [self typeText:@". "];
+    [self updateSuggestion];
+    return YES;
 }
 
 @end
