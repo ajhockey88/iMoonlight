@@ -47,7 +47,7 @@ jobs:
               tail -40 xcodebuild.log
               exit 1
             }
-          grep -E "(Trackpad|StreamView|StreamFrameViewController|SettingsViewController)\.m:[0-9]+:[0-9]+: warning" xcodebuild.log | sort -u || true
+          grep -E "(Trackpad/[A-Za-z]+|StreamView|StreamFrameViewController|SettingsViewController)\.m:[0-9]+:[0-9]+: warning" xcodebuild.log | sort -u || true
           tail -3 xcodebuild.log
 
       - name: Package IPA
