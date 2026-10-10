@@ -24,6 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, weak, nullable) id<PadKeyboardViewDelegate> delegate;
 
+/// How tall the keyboard is in portrait: about the height of the iPhone's own keyboard.
++ (CGFloat)preferredHeight;
+
 /// Clears the preview and returns to letters, ready for the next time it opens.
 - (void)reset;
 

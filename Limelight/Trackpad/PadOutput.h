@@ -64,6 +64,10 @@ typedef NS_ENUM(NSInteger, PadSpecialKey) {
 /// High-resolution wheel units (120 = one notch). Positive scrolls up.
 - (void)scrollBy:(float)amount;
 - (void)scrollEnd;
+/// Pinch zoom: holds Ctrl and turns the wheel, which zooms text in browsers and most apps.
+/// Positive notches zoom in (bigger). Ctrl stays down until zoomEnd.
+- (void)zoomBy:(int)notches;
+- (void)zoomEnd;
 
 /// Presses these keys together (modifiers first), then lets go in reverse order.
 - (void)pressKeys:(NSArray<NSNumber*>*)codes;

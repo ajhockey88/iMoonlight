@@ -255,7 +255,7 @@
 
 // Landscape: the stream fills the screen, as in Moonlight.
 // Portrait (iPhone): the stream fills the width at the top, and the trackpad with its
-// keyboard fills the rest, like ThorPad on the AYN Thor's bottom screen.
+// keyboard fills the rest, like ThorPad.
 - (void)layoutForCurrentOrientation {
     CGRect bounds = self.view.bounds;
     UIView *streamContainer = _scrollView != nil ? _scrollView : _streamView;

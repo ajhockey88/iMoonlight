@@ -15,6 +15,8 @@ static const CGFloat BAR_HEIGHT = 40;
 static const CGFloat BAR_PAD = 6;
 /// After this long without a touch the trackpad dims; the next touch only wakes it.
 static const NSTimeInterval DIM_AFTER = 30;
+/// With less trackpad than this left above the keyboard, the keyboard takes the whole panel.
+static const CGFloat MIN_PAD_HEIGHT = 120;
 
 @interface PadPanelView () <PadKeyboardViewDelegate, PadPcKeysViewDelegate>
 @end
@@ -82,13 +84,31 @@ static const NSTimeInterval DIM_AFTER = 30;
     return b;
 }
 
+- (void)safeAreaInsetsDidChange {
+    [super safeAreaInsetsDidChange];
+    [self setNeedsLayout];
+}
+
 - (void)layoutSubviews {
     [super layoutSubviews];
     CGRect b = self.bounds;
     _bar.frame = CGRectMake(BAR_PAD, BAR_PAD, b.size.width - 2 * BAR_PAD, BAR_HEIGHT);
     CGFloat padTop = BAR_PAD + BAR_HEIGHT;
-    _pad.frame = CGRectMake(0, padTop, b.size.width, b.size.height - padTop);
-    _keyboard.frame = b;
+    CGFloat padHeight = b.size.height - padTop;
+    // The keyboard takes up as much of the screen as the iPhone's own (above the home
+    // indicator), leaving the bar and the trackpad above it.
+    CGFloat kbHeight = [PadKeyboardView preferredHeight];
+    CGFloat bottomInset = self.safeAreaInsets.bottom;
+    if (!_keyboard.hidden) {
+        if (padHeight - kbHeight - bottomInset >= MIN_PAD_HEIGHT) {
+            padHeight -= kbHeight + bottomInset;
+            _keyboard.frame = CGRectMake(0, b.size.height - bottomInset - kbHeight, b.size.width, kbHeight);
+        } else {
+            _keyboard.frame = b;
+        }
+    }
+    _pad.frame = CGRectMake(0, padTop, b.size.width, padHeight);
+    _pad.active = _pcKeys.hidden && (_keyboard.hidden || _keyboard.frame.origin.y > 0);
     _pcKeys.frame = b;
 }
 
@@ -119,20 +139,23 @@ static const NSTimeInterval DIM_AFTER = 30;
     [_pcKeys reset];
     [_keyboard reset];
     _keyboard.hidden = NO;
-    _pad.active = NO;
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
 }
 
 - (void)openPcKeys {
     _keyboard.hidden = YES;
     [_pcKeys reset];
     _pcKeys.hidden = NO;
-    _pad.active = NO;
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
 }
 
 - (void)showTrackpad {
     _keyboard.hidden = YES;
     _pcKeys.hidden = YES;
-    _pad.active = YES;
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
 }
 
 - (void)resetInput {

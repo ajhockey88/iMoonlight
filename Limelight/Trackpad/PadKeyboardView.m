@@ -168,6 +168,10 @@ static NSArray<PadKey*>* bottomRow(NSString* pageLabel, NSInteger target) {
 
 #pragma mark - Layout
 
++ (CGFloat)preferredHeight {
+    return 260; // the iPhone keyboard's height without its emoji / dictation row
+}
+
 - (void)layoutSubviews {
     [super layoutSubviews];
     CGFloat w = self.bounds.size.width, h = self.bounds.size.height;

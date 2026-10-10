@@ -18,6 +18,7 @@ static const useconds_t KEY_HOLD_US = 25 * 1000;
     float _moveRemainderX, _moveRemainderY;
     float _scrollRemainder;
     BOOL _dragging;
+    BOOL _zooming;
     // Keys are sent in order on their own queue, so typing never blocks the UI
     // and a correction's backspaces always land before its new letters.
     dispatch_queue_t _keyQueue;
@@ -93,8 +94,32 @@ static const useconds_t KEY_HOLD_US = 25 * 1000;
     _scrollRemainder = 0;
 }
 
+// Zoom goes through the key queue so Ctrl is always down before the wheel turns.
+- (void)zoomBy:(int)notches {
+    if (notches == 0) return;
+    BOOL first = !_zooming;
+    _zooming = YES;
+    dispatch_async(_keyQueue, ^{
+        if (first) {
+            LiSendKeyboardEvent(PadVkCtrl, KEY_ACTION_DOWN, MODIFIER_CTRL);
+            usleep(KEY_HOLD_US);
+        }
+        LiSendHighResScrollEvent((short)MAX(-200, MIN(200, notches)) * 120);
+    });
+}
+
+- (void)zoomEnd {
+    if (!_zooming) return;
+    _zooming = NO;
+    dispatch_async(_keyQueue, ^{
+        usleep(KEY_HOLD_US);
+        LiSendKeyboardEvent(PadVkCtrl, KEY_ACTION_UP, 0);
+    });
+}
+
 - (void)releaseAll {
     [self dragEnd];
+    [self zoomEnd];
     _moveRemainderX = _moveRemainderY = 0;
     _scrollRemainder = 0;
 }
