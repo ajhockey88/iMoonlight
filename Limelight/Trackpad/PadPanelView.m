@@ -17,8 +17,14 @@ static const CGFloat BAR_PAD = 6;
 static const NSTimeInterval DIM_AFTER = 30;
 /// With less trackpad than this left above the keyboard, the keyboard takes the whole panel.
 static const CGFloat MIN_PAD_HEIGHT = 120;
-/// Side by side, the keyboard's share of the width.
-static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
+/// Side by side, the keyboard's share of the width; the trackpad gets the rest.
+static const CGFloat SIDE_KEYBOARD_SHARE = 0.775;
+/// Side by side, the strip along the top of the trackpad where a swipe down shows the bar.
+static const CGFloat GRABBER_HEIGHT = 28;
+/// How far the swipe must travel to show the bar.
+static const CGFloat GRABBER_SWIPE = 20;
+/// Side by side, the bar hides itself again after this long.
+static const NSTimeInterval BAR_SHOWN_FOR = 4;
 
 @interface PadPanelView () <PadKeyboardViewDelegate, PadPcKeysViewDelegate>
 @end
@@ -29,6 +35,9 @@ static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
     PadKeyboardView* _keyboard;
     PadPcKeysView* _pcKeys;
     UIButton* _videoButton;
+    /// Side by side the bar is hidden; a swipe down on this strip shows it.
+    UIView* _grabber;
+    BOOL _barRevealed;
     BOOL _dimmed;
     /// The touch that wakes a dimmed panel only wakes it.
     BOOL _swallowing;
@@ -60,6 +69,18 @@ static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
         _keyboard.delegate = self;
         _keyboard.hidden = YES;
         [self addSubview:_keyboard];
+
+        _grabber = [[UIView alloc] init];
+        _grabber.hidden = YES;
+        UIView* handle = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 36, 4)];
+        handle.backgroundColor = [UIColor colorWithWhite:1 alpha:70 / 255.0];
+        handle.layer.cornerRadius = 2;
+        handle.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
+        handle.tag = 1;
+        [_grabber addSubview:handle];
+        [_grabber addGestureRecognizer:[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(grabberPanned:)]];
+        [_grabber addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(revealBar)]];
+        [self addSubview:_grabber];
 
         _pcKeys = [[PadPcKeysView alloc] initWithFrame:CGRectZero];
         _pcKeys.delegate = self;
@@ -103,12 +124,15 @@ static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
     CGFloat padTop = BAR_PAD + BAR_HEIGHT;
     CGFloat padHeight = b.size.height - padTop;
     if (_sideBySide) {
-        // Keyboard down the whole left side; bar and trackpad share the right.
+        // Keyboard down the whole left side, the trackpad on the right, and the bar hidden
+        // until a swipe down from the top of the trackpad.
         if (!_keyboard.hidden) {
             CGFloat kbWidth = round(b.size.width * SIDE_KEYBOARD_SHARE);
             _keyboard.frame = CGRectMake(_keyboardInset, 0, kbWidth - _keyboardInset, b.size.height);
             left = kbWidth + 1;
         }
+        padTop = 0;
+        padHeight = b.size.height;
     }
     else if (!_keyboard.hidden) {
         // The keyboard takes up as much of the screen as the iPhone's own (above the home
@@ -124,8 +148,24 @@ static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
         }
     }
     CGFloat width = b.size.width - left;
-    _bar.frame = CGRectMake(left + BAR_PAD, BAR_PAD, width - 2 * BAR_PAD, BAR_HEIGHT);
+    if (_sideBySide) {
+        // When shown, the bar spans the whole top, over the keyboard's strip.
+        _bar.frame = CGRectMake(_keyboardInset + BAR_PAD, BAR_PAD, b.size.width - _keyboardInset - 2 * BAR_PAD, BAR_HEIGHT);
+        _bar.hidden = !_barRevealed;
+        _grabber.frame = CGRectMake(left, 0, width, GRABBER_HEIGHT);
+        [_grabber viewWithTag:1].center = CGPointMake(width / 2, 8);
+        _grabber.hidden = _barRevealed;
+        [self bringSubviewToFront:_grabber];
+        [self bringSubviewToFront:_bar];
+        [self bringSubviewToFront:_pcKeys];
+    }
+    else {
+        _bar.frame = CGRectMake(left + BAR_PAD, BAR_PAD, width - 2 * BAR_PAD, BAR_HEIGHT);
+        _bar.hidden = NO;
+        _grabber.hidden = YES;
+    }
     _pad.frame = CGRectMake(left, padTop, width, padHeight);
+    _pad.showHints = !_sideBySide;
     _pad.active = _pcKeys.hidden && !keyboardCoversPad;
     _pcKeys.frame = b;
 }
@@ -139,6 +179,37 @@ static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
 - (void)setSideBySide:(BOOL)sideBySide {
     if (_sideBySide == sideBySide) return;
     _sideBySide = sideBySide;
+    [self hideBar];
+    [self updateVideoButton];
+    [self setNeedsLayout];
+}
+
+#pragma mark - Hidden bar (side by side)
+
+- (void)grabberPanned:(UIPanGestureRecognizer*)pan {
+    if (pan.state == UIGestureRecognizerStateChanged && [pan translationInView:self].y > GRABBER_SWIPE) {
+        [self revealBar];
+    }
+}
+
+- (void)revealBar {
+    if (!_sideBySide || _barRevealed) return;
+    [PadHaptics play:PadHapticBar];
+    _barRevealed = YES;
+    _bar.backgroundColor = [UIColor blackColor];
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
+    _bar.alpha = 0;
+    [UIView animateWithDuration:0.15 animations:^{ self->_bar.alpha = 1; }];
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(hideBar) object:nil];
+    [self performSelector:@selector(hideBar) withObject:nil afterDelay:BAR_SHOWN_FOR];
+}
+
+- (void)hideBar {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(hideBar) object:nil];
+    if (!_barRevealed) return;
+    _barRevealed = NO;
+    _bar.alpha = 1;
     [self setNeedsLayout];
 }
 
@@ -149,7 +220,7 @@ static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
 
 - (void)updateVideoButton {
     [_videoButton setTitle:_videoOff ? @"🎥 Video on" : @"🚫 Video off" forState:UIControlStateNormal];
-    _pad.note = _videoOff ? @"Video is off · still connected" : nil;
+    _pad.note = !_videoOff ? nil : _sideBySide ? @"Video off" : @"Video is off · still connected";
     // Lit while the video is off, so it's clear why the screen is dark.
     _videoButton.backgroundColor = _videoOff
         ? [UIColor colorWithRed:36 / 255.0 green:80 / 255.0 blue:110 / 255.0 alpha:1]
@@ -159,26 +230,31 @@ static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
 #pragma mark - Bar
 
 - (void)keyboardTapped {
+    [self hideBar];
     [PadHaptics play:PadHapticBar];
     [self openKeyboard];
 }
 
 - (void)pcKeysTapped {
+    [self hideBar];
     [PadHaptics play:PadHapticBar];
     [self openPcKeys];
 }
 
 - (void)videoTapped {
+    [self hideBar];
     [PadHaptics play:PadHapticBar];
     [self.delegate padPanelWantsVideoToggled:self];
 }
 
 - (void)settingsTapped {
+    [self hideBar];
     [PadHaptics play:PadHapticBar];
     [self.delegate padPanelWantsSettings:self];
 }
 
 - (void)disconnectTapped {
+    [self hideBar];
     [PadHaptics play:PadHapticBar];
     [self.delegate padPanelWantsDisconnect:self];
 }
