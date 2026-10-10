@@ -95,13 +95,14 @@ static const CGFloat MIN_PAD_HEIGHT = 120;
     _bar.frame = CGRectMake(BAR_PAD, BAR_PAD, b.size.width - 2 * BAR_PAD, BAR_HEIGHT);
     CGFloat padTop = BAR_PAD + BAR_HEIGHT;
     CGFloat padHeight = b.size.height - padTop;
-    // The keyboard is iPhone-size along the bottom (above the home indicator), leaving the
-    // bar and the trackpad above it.
-    CGFloat kbHeight = [PadKeyboardView preferredHeight] + self.safeAreaInsets.bottom;
+    // The keyboard takes up as much of the screen as the iPhone's own (above the home
+    // indicator), leaving the bar and the trackpad above it.
+    CGFloat kbHeight = [PadKeyboardView preferredHeight];
+    CGFloat bottomInset = self.safeAreaInsets.bottom;
     if (!_keyboard.hidden) {
-        if (padHeight - kbHeight >= MIN_PAD_HEIGHT) {
-            padHeight -= kbHeight;
-            _keyboard.frame = CGRectMake(0, b.size.height - kbHeight, b.size.width, kbHeight);
+        if (padHeight - kbHeight - bottomInset >= MIN_PAD_HEIGHT) {
+            padHeight -= kbHeight + bottomInset;
+            _keyboard.frame = CGRectMake(0, b.size.height - bottomInset - kbHeight, b.size.width, kbHeight);
         } else {
             _keyboard.frame = b;
         }

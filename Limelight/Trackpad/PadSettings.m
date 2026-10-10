@@ -9,6 +9,7 @@ NSString* const PadKeySensitivity = @"pad.sensitivity";
 NSString* const PadKeyAcceleration = @"pad.acceleration";
 NSString* const PadKeyScrollSpeed = @"pad.scrollSpeed";
 NSString* const PadKeyInvertScroll = @"pad.invertScroll";
+NSString* const PadKeyZoomSpeed = @"pad.zoomSpeed";
 NSString* const PadKeySwapScreens = @"pad.swapScreens";
 NSString* const PadKeyDimWhenIdle = @"pad.dimWhenIdle";
 NSString* const PadKeyAutocorrect = @"pad.autocorrect";
@@ -25,6 +26,7 @@ NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotificatio
             PadKeyAcceleration: @0.6f,
             PadKeyScrollSpeed: @2.0f,
             PadKeyInvertScroll: @NO,
+            PadKeyZoomSpeed: @1.0f,
             PadKeySwapScreens: @NO,
             PadKeyDimWhenIdle: @YES,
             PadKeyAutocorrect: @YES,
@@ -36,6 +38,7 @@ NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotificatio
 + (float)sensitivity { return [self floatForKey:PadKeySensitivity]; }
 + (float)acceleration { return [self floatForKey:PadKeyAcceleration]; }
 + (float)scrollSpeed { return [self floatForKey:PadKeyScrollSpeed]; }
++ (float)zoomSpeed { return [self floatForKey:PadKeyZoomSpeed]; }
 + (BOOL)invertScroll { return [self boolForKey:PadKeyInvertScroll]; }
 + (BOOL)swapScreens { return [self boolForKey:PadKeySwapScreens]; }
 + (BOOL)dimWhenIdle { return [self boolForKey:PadKeyDimWhenIdle]; }

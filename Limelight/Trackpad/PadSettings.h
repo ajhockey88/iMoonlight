@@ -13,6 +13,7 @@ extern NSString* const PadKeySensitivity;
 extern NSString* const PadKeyAcceleration;
 extern NSString* const PadKeyScrollSpeed;
 extern NSString* const PadKeyInvertScroll;
+extern NSString* const PadKeyZoomSpeed;
 extern NSString* const PadKeySwapScreens;
 extern NSString* const PadKeyDimWhenIdle;
 extern NSString* const PadKeyAutocorrect;
@@ -29,6 +30,8 @@ extern NSString* const PadSettingsChangedNotification;
 + (float)acceleration;
 /// Scroll distance per point of two-finger movement.
 + (float)scrollSpeed;
+/// How much a pinch zooms: zoom steps per 60 pt change in finger spacing.
++ (float)zoomSpeed;
 /// NO = natural (content follows fingers), YES = classic scroll wheel direction.
 + (BOOL)invertScroll;
 /// Trackpad on top, stream underneath.

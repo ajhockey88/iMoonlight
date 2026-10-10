@@ -49,6 +49,7 @@ enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionHaptics, SectionC
             @[[PadSettingRow slider:@"Pointer speed" key:PadKeySensitivity min:0.5 max:5],
               [PadSettingRow slider:@"Pointer acceleration" key:PadKeyAcceleration min:0 max:2],
               [PadSettingRow slider:@"Scroll speed" key:PadKeyScrollSpeed min:0.5 max:5],
+              [PadSettingRow slider:@"Pinch zoom speed" key:PadKeyZoomSpeed min:0.2 max:3],
               [PadSettingRow toggle:@"Classic scroll direction" detail:@"Fingers down scrolls down, like a mouse wheel" key:PadKeyInvertScroll]],
             @[[PadSettingRow toggle:@"Swap screens" detail:@"Trackpad on top, stream underneath" key:PadKeySwapScreens],
               [PadSettingRow toggle:@"Dim when idle" detail:@"After 30 seconds without a touch the trackpad dims; the next touch only wakes it" key:PadKeyDimWhenIdle]],

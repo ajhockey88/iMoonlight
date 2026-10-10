@@ -29,8 +29,8 @@ Hold the phone upright while streaming. Along the top of the trackpad is a bar w
 The bottom of the trackpad lists these gestures in three columns: one, two and three fingers.
 Every action gives a haptic tap.
 
-- ⌨️ **Keyboard** opens an iPhone-size keyboard along the bottom, with the trackpad still
-  usable above it. Keys type the moment your finger
+- ⌨️ **Keyboard** opens along the bottom, taking up about as much room as the iPhone's own
+  keyboard, with the trackpad still usable above it. Keys type the moment your finger
   lands (Settings can switch this to "type when the finger lifts"), each finger is tracked
   separately, and every press flashes and buzzes. **?123** and **=\<** switch to numbers,
   symbols, Esc, Tab and arrow keys. Tap ⇧ once for one capital letter, or twice quickly for caps
@@ -43,7 +43,7 @@ Every action gives a haptic tap.
 - 🖥️ **PC keys**: Esc, F1 to F12, Alt+Tab, Win+Tab, Win+D, Alt+F4, Ctrl+Shift+Esc, Print Screen,
   Home / End / Page Up / Page Down / Delete / Backspace and arrows. Ctrl, Alt, Shift and Win stay
   held after a tap and go with the next key, for any combo. **ABC** switches to the keyboard.
-- ⚙️ **Settings**: pointer speed and acceleration, scroll speed, classic scroll direction,
+- ⚙️ **Settings**: pointer speed and acceleration, scroll speed, pinch zoom speed, classic scroll direction,
   swap screens (trackpad on top), dim when idle, autocorrect, type when the finger lifts, and a
   feel (Off, Tick, Click, Heavy, Double, Buzz) and strength for every haptic.
 

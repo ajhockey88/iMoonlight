@@ -21,12 +21,6 @@ static const NSTimeInterval REPEAT_DELAY = 0.400, REPEAT_EVERY = 0.055;
 static const NSTimeInterval CAPS_LOCK_DOUBLE_TAP = 0.350;
 static const NSTimeInterval FLASH = 0.090;
 static const CGFloat STRIP_HEIGHT = 44;
-// iPhone keyboard proportions: rows 54 pt apart, keys 42 pt tall with 6 pt between them.
-// Touches land on the whole cell, gaps included (keyAt snaps to the nearest key).
-static const CGFloat ROW_HEIGHT = 54;
-static const CGFloat KEY_GAP_X = 6, KEY_GAP_Y = 12;
-static const CGFloat SIDE_INSET = 3;
-static const CGFloat KEY_RADIUS = 5;
 
 static UIColor* rgb(int r, int g, int b) {
     return [UIColor colorWithRed:r / 255.0 green:g / 255.0 blue:b / 255.0 alpha:1];
@@ -175,7 +169,7 @@ static NSArray<PadKey*>* bottomRow(NSString* pageLabel, NSInteger target) {
 #pragma mark - Layout
 
 + (CGFloat)preferredHeight {
-    return STRIP_HEIGHT + 4 * ROW_HEIGHT;
+    return 260; // the iPhone keyboard's height without its emoji / dictation row
 }
 
 - (void)layoutSubviews {
@@ -184,15 +178,14 @@ static NSArray<PadKey*>* bottomRow(NSString* pageLabel, NSInteger target) {
     CGFloat closeW = MAX(88, w * 260 / 1240);
     _stripRect = CGRectMake(0, 0, w - closeW, STRIP_HEIGHT);
     _closeKey.rect = CGRectMake(w - closeW, 0, closeW, STRIP_HEIGHT);
-    _rowHeight = MIN(ROW_HEIGHT, (h - STRIP_HEIGHT) / 4);
-    CGFloat rowsW = w - 2 * SIDE_INSET;
+    _rowHeight = (h - STRIP_HEIGHT) / 4;
     for (NSArray<NSArray<PadKey*>*>* rows in _pages) {
         for (NSUInteger r = 0; r < rows.count; r++) {
             CGFloat total = 0;
             for (PadKey* k in rows[r]) total += k.weight;
-            CGFloat x = SIDE_INSET, top = STRIP_HEIGHT + r * _rowHeight;
+            CGFloat x = 0, top = STRIP_HEIGHT + r * _rowHeight;
             for (PadKey* k in rows[r]) {
-                CGFloat kw = rowsW * k.weight / total;
+                CGFloat kw = w * k.weight / total;
                 k.rect = CGRectMake(x, top, kw, _rowHeight);
                 x += kw;
             }
@@ -236,8 +229,8 @@ static void drawCentered(NSString* text, CGRect r, UIFont* font, UIColor* color)
     CGFloat size;
     BOOL bold = NO;
     BOOL clearAll = k.type == PadKeySpace && _repeating != nil;
-    // Font sizes match the iPhone keyboard's, shrinking only if the rows are squeezed.
-    CGFloat scale = MIN(1, _rowHeight / ROW_HEIGHT);
+    // Font sizes follow the key height, within limits that read well on a phone.
+    CGFloat rh = MIN(_rowHeight, 110);
     if (k.type == PadKeyClose) {
         bg = rgb(0x4a, 0x22, 0x28);
         fg = rgb(0xff, 0xb3, 0xba);
@@ -246,46 +239,37 @@ static void drawCentered(NSString* text, CGRect r, UIFont* font, UIColor* color)
     } else if (k.style == PadKeyStyleEnter) {
         bg = rgb(0x1f, 0x4d, 0x6b);
         fg = rgb(0xbf, 0xe6, 0xff);
-        size = 16 * scale;
+        size = rh * 0.17;
     } else if (k.style == PadKeyStyleMod) {
         bg = (k.type == PadKeyShift && _shift == 2) ? rgb(0x24, 0x50, 0x6e) : rgb(0x2c, 0x30, 0x39);
         fg = (k.type == PadKeyShift && _shift > 0) ? [UIColor whiteColor] : rgb(0xcf, 0xd6, 0xe2);
-        size = (k.label.length > 2 ? 16 : 20) * scale;
+        size = k.label.length > 2 ? rh * 0.17 : rh * 0.24;
         bold = k.type == PadKeyShift && _shift > 0;
     } else if (clearAll) {
         // While backspace is held, the space bar becomes "Clear all".
         bg = rgb(0x3a, 0x1f, 0x23);
         fg = rgb(0xff, 0x9a, 0x9a);
-        size = 16 * scale;
+        size = rh * 0.17;
         bold = YES;
     } else if (k.type == PadKeySpace) {
         bg = rgb(0x24, 0x26, 0x2d);
         fg = rgb(0x8a, 0x90, 0x9b);
-        size = 16 * scale;
+        size = rh * 0.14;
     } else {
         bg = rgb(0x24, 0x26, 0x2d);
         fg = [UIColor whiteColor];
-        size = 24 * scale;
+        size = rh * 0.29;
     }
     if ([self isDown:k]) {
         bg = rgb(0x78, 0xc8, 0xff);
         fg = [UIColor blackColor];
     }
     [bg setFill];
-    CGRect face;
-    if (k.type == PadKeyClose) {
-        face = CGRectMake(k.rect.origin.x, k.rect.origin.y, k.rect.size.width - hair, k.rect.size.height - hair);
-        UIRectFill(face);
-    } else {
-        // A rounded key face with gaps around it, like the iPhone keyboard.
-        CGFloat gapY = KEY_GAP_Y * MIN(1, _rowHeight / ROW_HEIGHT);
-        face = CGRectInset(k.rect, KEY_GAP_X / 2, gapY / 2);
-        [[UIBezierPath bezierPathWithRoundedRect:face cornerRadius:KEY_RADIUS] fill];
-    }
+    UIRectFill(CGRectMake(k.rect.origin.x, k.rect.origin.y, k.rect.size.width - hair, k.rect.size.height - hair));
     NSString* label = clearAll ? @"Clear all" : k.label;
     if (k.type == PadKeyChar && _shift > 0 && _page == PageLetters) label = label.uppercaseString;
     UIFont* font = bold ? [UIFont boldSystemFontOfSize:size] : [UIFont systemFontOfSize:size];
-    drawCentered(label, face, font, fg);
+    drawCentered(label, k.rect, font, fg);
 }
 
 - (void)drawPreview {

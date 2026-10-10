@@ -40,8 +40,9 @@ static const CGFloat NOTCH_PT = 22;
 static const CGFloat WHEEL_DELTA = 120;
 /// Fingers must spread or pinch this far, more than they move together, to start a zoom.
 static const CGFloat ZOOM_START_PT = 18;
-/// Change in finger spacing for each zoom step (Ctrl + one wheel notch), in points.
-static const CGFloat ZOOM_STEP_PT = 30;
+/// Change in finger spacing for each zoom step (Ctrl + one wheel notch) at zoom speed 1,
+/// in points. The "Pinch zoom speed" setting divides it.
+static const CGFloat ZOOM_STEP_PT = 60;
 
 @implementation PadTrackpadView {
     NSMutableArray<UITouch*>* _touches;
@@ -339,7 +340,8 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
         if (_zooming) {
             // Spreading the fingers zooms in (bigger), pinching them together zooms out,
             // like pinching a photo on the iPhone.
-            int steps = (int)(spreadChange / ZOOM_STEP_PT);
+            CGFloat step = ZOOM_STEP_PT / MAX(0.1f, [PadSettings zoomSpeed]);
+            int steps = (int)(spreadChange / step);
             if (steps != _zoomSteps) {
                 [out zoomBy:steps - _zoomSteps];
                 _zoomSteps = steps;
