@@ -47,12 +47,14 @@ jobs:
               tail -40 xcodebuild.log
               exit 1
             }
+          grep -E "(Trackpad|StreamView|StreamFrameViewController|SettingsViewController)\.m:[0-9]+:[0-9]+: warning" xcodebuild.log | sort -u || true
           tail -3 xcodebuild.log
 
       - name: Package IPA
         run: |
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/Moonlight.app Payload/
+          test -f Payload/Moonlight.app/words.txt
           zip -qry iMoonlight.ipa Payload
           ls -lh iMoonlight.ipa
 
