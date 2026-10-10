@@ -30,5 +30,8 @@ typedef struct {
 -(void) main;
 -(BOOL) getVideoStats:(video_stats_t*)stats;
 -(NSString*) getActiveCodecName;
+/// Video off: frames are dropped before decoding while the connection, audio and input carry
+/// on. Turning video back on asks the PC for a fresh keyframe.
++(void) setVideoPaused:(BOOL)paused;
 
 @end

@@ -103,6 +103,19 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     [path stroke];
 
     [self drawHints];
+
+    if (_note.length > 0) {
+        NSDictionary* attrs = @{NSFontAttributeName: [UIFont systemFontOfSize:13],
+                                NSForegroundColorAttributeName: [UIColor colorWithWhite:1 alpha:90/255.0]};
+        CGSize size = [_note sizeWithAttributes:attrs];
+        [_note drawAtPoint:CGPointMake(CGRectGetMidX(self.bounds) - size.width / 2, self.bounds.size.height * 0.35 - size.height / 2)
+            withAttributes:attrs];
+    }
+}
+
+- (void)setNote:(NSString*)note {
+    _note = [note copy];
+    [self setNeedsDisplay];
 }
 
 /// The gesture cheat sheet along the bottom: one column per number of fingers.

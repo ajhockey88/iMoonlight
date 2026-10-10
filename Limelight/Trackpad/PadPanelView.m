@@ -17,6 +17,8 @@ static const CGFloat BAR_PAD = 6;
 static const NSTimeInterval DIM_AFTER = 30;
 /// With less trackpad than this left above the keyboard, the keyboard takes the whole panel.
 static const CGFloat MIN_PAD_HEIGHT = 120;
+/// Side by side, the keyboard's share of the width.
+static const CGFloat SIDE_KEYBOARD_SHARE = 0.55;
 
 @interface PadPanelView () <PadKeyboardViewDelegate, PadPcKeysViewDelegate>
 @end
@@ -26,6 +28,7 @@ static const CGFloat MIN_PAD_HEIGHT = 120;
     PadTrackpadView* _pad;
     PadKeyboardView* _keyboard;
     PadPcKeysView* _pcKeys;
+    UIButton* _videoButton;
     BOOL _dimmed;
     /// The touch that wakes a dimmed panel only wakes it.
     BOOL _swallowing;
@@ -43,6 +46,9 @@ static const CGFloat MIN_PAD_HEIGHT = 120;
         _bar.spacing = 8;
         [_bar addArrangedSubview:[self barButton:@"⌨️ Keyboard" action:@selector(keyboardTapped)]];
         [_bar addArrangedSubview:[self barButton:@"🖥️ PC keys" action:@selector(pcKeysTapped)]];
+        _videoButton = [self barButton:@"" action:@selector(videoTapped)];
+        [_bar addArrangedSubview:_videoButton];
+        [self updateVideoButton];
         [_bar addArrangedSubview:[self barButton:@"⚙️ Settings" action:@selector(settingsTapped)]];
         [_bar addArrangedSubview:[self barButton:@"✖️ Disconnect" action:@selector(disconnectTapped)]];
         [self addSubview:_bar];
@@ -92,24 +98,62 @@ static const CGFloat MIN_PAD_HEIGHT = 120;
 - (void)layoutSubviews {
     [super layoutSubviews];
     CGRect b = self.bounds;
-    _bar.frame = CGRectMake(BAR_PAD, BAR_PAD, b.size.width - 2 * BAR_PAD, BAR_HEIGHT);
+    CGFloat left = 0;
+    BOOL keyboardCoversPad = NO;
     CGFloat padTop = BAR_PAD + BAR_HEIGHT;
     CGFloat padHeight = b.size.height - padTop;
-    // The keyboard takes up as much of the screen as the iPhone's own (above the home
-    // indicator), leaving the bar and the trackpad above it.
-    CGFloat kbHeight = [PadKeyboardView preferredHeight];
-    CGFloat bottomInset = self.safeAreaInsets.bottom;
-    if (!_keyboard.hidden) {
+    if (_sideBySide) {
+        // Keyboard down the whole left side; bar and trackpad share the right.
+        if (!_keyboard.hidden) {
+            CGFloat kbWidth = round(b.size.width * SIDE_KEYBOARD_SHARE);
+            _keyboard.frame = CGRectMake(_keyboardInset, 0, kbWidth - _keyboardInset, b.size.height);
+            left = kbWidth + 1;
+        }
+    }
+    else if (!_keyboard.hidden) {
+        // The keyboard takes up as much of the screen as the iPhone's own (above the home
+        // indicator), leaving the bar and the trackpad above it.
+        CGFloat kbHeight = [PadKeyboardView preferredHeight];
+        CGFloat bottomInset = self.safeAreaInsets.bottom;
         if (padHeight - kbHeight - bottomInset >= MIN_PAD_HEIGHT) {
             padHeight -= kbHeight + bottomInset;
             _keyboard.frame = CGRectMake(0, b.size.height - bottomInset - kbHeight, b.size.width, kbHeight);
         } else {
             _keyboard.frame = b;
+            keyboardCoversPad = YES;
         }
     }
-    _pad.frame = CGRectMake(0, padTop, b.size.width, padHeight);
-    _pad.active = _pcKeys.hidden && (_keyboard.hidden || _keyboard.frame.origin.y > 0);
+    CGFloat width = b.size.width - left;
+    _bar.frame = CGRectMake(left + BAR_PAD, BAR_PAD, width - 2 * BAR_PAD, BAR_HEIGHT);
+    _pad.frame = CGRectMake(left, padTop, width, padHeight);
+    _pad.active = _pcKeys.hidden && !keyboardCoversPad;
     _pcKeys.frame = b;
+}
+
+- (void)setKeyboardInset:(CGFloat)keyboardInset {
+    if (_keyboardInset == keyboardInset) return;
+    _keyboardInset = keyboardInset;
+    [self setNeedsLayout];
+}
+
+- (void)setSideBySide:(BOOL)sideBySide {
+    if (_sideBySide == sideBySide) return;
+    _sideBySide = sideBySide;
+    [self setNeedsLayout];
+}
+
+- (void)setVideoOff:(BOOL)videoOff {
+    _videoOff = videoOff;
+    [self updateVideoButton];
+}
+
+- (void)updateVideoButton {
+    [_videoButton setTitle:_videoOff ? @"🎥 Video on" : @"🚫 Video off" forState:UIControlStateNormal];
+    _pad.note = _videoOff ? @"Video is off · still connected" : nil;
+    // Lit while the video is off, so it's clear why the screen is dark.
+    _videoButton.backgroundColor = _videoOff
+        ? [UIColor colorWithRed:36 / 255.0 green:80 / 255.0 blue:110 / 255.0 alpha:1]
+        : [UIColor colorWithRed:28 / 255.0 green:28 / 255.0 blue:32 / 255.0 alpha:1];
 }
 
 #pragma mark - Bar
@@ -122,6 +166,11 @@ static const CGFloat MIN_PAD_HEIGHT = 120;
 - (void)pcKeysTapped {
     [PadHaptics play:PadHapticBar];
     [self openPcKeys];
+}
+
+- (void)videoTapped {
+    [PadHaptics play:PadHapticBar];
+    [self.delegate padPanelWantsVideoToggled:self];
 }
 
 - (void)settingsTapped {

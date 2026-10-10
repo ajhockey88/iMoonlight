@@ -33,6 +33,8 @@ static NSLock* initLock;
 static OpusMSDecoder* opusDecoder;
 static id<ConnectionCallbacks> _callbacks;
 static int lastFrameNumber;
+static volatile BOOL videoPaused;
+static volatile BOOL videoNeedsKeyframe;
 static int activeVideoFormat;
 static video_stats_t currentVideoStats;
 static video_stats_t lastVideoStats;
@@ -49,6 +51,8 @@ int DrDecoderSetup(int videoFormat, int width, int height, int redrawRate, void*
 {
     [renderer setupWithVideoFormat:videoFormat width:width height:height frameRate:redrawRate];
     lastFrameNumber = 0;
+    videoPaused = NO;
+    videoNeedsKeyframe = NO;
     activeVideoFormat = videoFormat;
     memset(&currentVideoStats, 0, sizeof(currentVideoStats));
     memset(&lastVideoStats, 0, sizeof(lastVideoStats));
@@ -78,6 +82,14 @@ void DrStop(void)
     // No stats yet
     [videoStatsLock unlock];
     return NO;
+}
+
++(void) setVideoPaused:(BOOL)paused
+{
+    if (videoPaused && !paused) {
+        videoNeedsKeyframe = YES;
+    }
+    videoPaused = paused;
 }
 
 -(NSString*) getActiveCodecName
@@ -133,6 +145,20 @@ int DrSubmitDecodeUnit(PDECODE_UNIT decodeUnit)
 {
     int offset = 0;
     int ret;
+    
+    if (videoPaused) {
+        // Video off: skip decoding, but keep the frame count so stats don't see a gap.
+        lastFrameNumber = decodeUnit->frameNumber;
+        return DR_OK;
+    }
+    if (videoNeedsKeyframe) {
+        videoNeedsKeyframe = NO;
+        if (decodeUnit->frameType != FRAME_TYPE_IDR) {
+            // Frames after a pause reference ones the decoder never saw.
+            lastFrameNumber = decodeUnit->frameNumber;
+            return DR_NEED_IDR;
+        }
+    }
     unsigned char* data = (unsigned char*) malloc(decodeUnit->fullLength);
     if (data == NULL) {
         // A frame was lost due to OOM condition

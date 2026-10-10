@@ -11,7 +11,12 @@ to the same hosts: [Sunshine](https://github.com/LizardByte/Sunshine) (or Apollo
 ## Portrait mode
 
 Hold the phone upright while streaming. Along the top of the trackpad is a bar with
-**⌨️ Keyboard**, **🖥️ PC keys**, **⚙️ Settings** and **✖️ Disconnect**.
+**⌨️ Keyboard**, **🖥️ PC keys**, **🚫 Video off**, **⚙️ Settings** and **✖️ Disconnect**.
+
+**🚫 Video off** stops the picture but stays connected, so the trackpad and keyboard keep
+controlling the PC and the trackpad takes over the whole screen. Turn the phone sideways
+while the video is off and the keyboard fills the left side with the trackpad on the right.
+**🎥 Video on** brings the picture back.
 
 | On the trackpad | On the PC |
 |---|---|
