@@ -16,6 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface PadTrackpadView : UIView
 
 /// Where gestures go; NO while the keyboard or PC keys cover the trackpad.
+/// A quiet line of text in the middle of the trackpad, e.g. while the video is off.
+@property (nonatomic, copy, nullable) NSString* note;
 @property (nonatomic) BOOL active;
 
 @end

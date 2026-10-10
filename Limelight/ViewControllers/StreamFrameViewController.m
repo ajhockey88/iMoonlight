@@ -10,6 +10,7 @@
 #import "MainFrameViewController.h"
 #import "VideoDecoderRenderer.h"
 #import "StreamManager.h"
+#import "Connection.h"
 #import "ControllerSupport.h"
 #import "DataManager.h"
 #if !TARGET_OS_TV
@@ -64,6 +65,9 @@
     // Portrait layout: the stream on top, the trackpad and keyboard underneath.
     PadPanelView *_padPanel;
     BOOL _portraitLayout;
+    // Video off: still connected, with the trackpad and keyboard in charge of the screen.
+    BOOL _videoOff;
+    BOOL _padShown;
 #endif
 }
 
@@ -256,24 +260,46 @@
 // Landscape: the stream fills the screen, as in Moonlight.
 // Portrait (iPhone): the stream fills the width at the top, and the trackpad with its
 // keyboard fills the rest, like ThorPad.
+// Video off: the trackpad panel takes the whole screen; sideways, the keyboard fills the left
+// side and the trackpad the right.
 - (void)layoutForCurrentOrientation {
     CGRect bounds = self.view.bounds;
     UIView *streamContainer = _scrollView != nil ? _scrollView : _streamView;
-    BOOL portrait = bounds.size.height > bounds.size.width &&
-        [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone;
+    BOOL phone = [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone;
+    BOOL portrait = bounds.size.height > bounds.size.width && phone;
+    BOOL padShown = portrait || (_videoOff && phone);
     
-    if (portrait != _portraitLayout) {
+    if (portrait != _portraitLayout || padShown != _padShown) {
+        if (!padShown) {
+            [_padPanel resetInput];
+        }
         _portraitLayout = portrait;
-        [_padPanel resetInput];
-        [_streamView setOnScreenControlsSuppressed:portrait];
-        _padPanel.hidden = !portrait;
+        _padShown = padShown;
+        [_streamView setOnScreenControlsSuppressed:padShown];
+        _padPanel.hidden = !padShown;
         if (_scrollView != nil) {
             [_scrollView setZoomScale:1.0f animated:NO];
         }
     }
+    _padPanel.sideBySide = !portrait;
+    streamContainer.hidden = _videoOff;
     
     CGRect streamFrame;
-    if (portrait) {
+    if (_videoOff && padShown) {
+        UIEdgeInsets safe = self.view.safeAreaInsets;
+        streamFrame = bounds;
+        if (portrait) {
+            _padPanel.frame = UIEdgeInsetsInsetRect(bounds, UIEdgeInsetsMake(safe.top, 0, safe.bottom, 0));
+        }
+        else {
+            // Edge to edge: the trackpad works fine under the rounded corners and the camera,
+            // so only the keyboard keeps its keys clear of the camera when it's on the left.
+            _padPanel.frame = bounds;
+            BOOL cameraOnLeft = self.view.window.windowScene.interfaceOrientation == UIInterfaceOrientationLandscapeRight;
+            _padPanel.keyboardInset = cameraOnLeft ? MAX(0, safe.left - 12) : 0;
+        }
+    }
+    else if (portrait) {
         UIEdgeInsets safe = self.view.safeAreaInsets;
         float aspect = (float)self.streamConfig.width / (float)self.streamConfig.height;
         CGFloat usableHeight = bounds.size.height - safe.top - safe.bottom;
@@ -334,6 +360,14 @@
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[[PadSettingsViewController alloc] init]];
     nav.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     [self presentViewController:nav animated:YES completion:nil];
+}
+
+- (void)padPanelWantsVideoToggled:(PadPanelView *)panel {
+    _videoOff = !_videoOff;
+    Log(LOG_I, @"User turned the video %@", _videoOff ? @"off" : @"on");
+    [Connection setVideoPaused:_videoOff];
+    _padPanel.videoOff = _videoOff;
+    [self.view setNeedsLayout];
 }
 
 - (void)padPanelWantsDisconnect:(PadPanelView *)panel {
