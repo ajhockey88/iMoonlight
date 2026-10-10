@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 100 100">
+  <!-- iMoonlight app icon: Moonlight's wheel on the stream above a trackpad.
+       Square on purpose: iOS rounds the corners itself. -->
+  <rect width="100" height="100" fill="#565C64"/>
+  <rect x="18" y="12" width="64" height="40" rx="5" fill="#3E434A"/>
+  <g transform="translate(50 32) scale(0.42)" stroke="#3E434A" stroke-width="3.1">
+    <circle r="39.4" fill="#FFFFFF" stroke="none"/>
+    <line x1="-41" y1="0" x2="41" y2="0"/><line x1="0" y1="-41" x2="0" y2="41"/>
+    <line x1="-29" y1="-29" x2="29" y2="29"/><line x1="-29" y1="29" x2="29" y2="-29"/>
+  </g>
+  <rect x="18" y="58" width="64" height="30" rx="5" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+  <circle cx="44" cy="73" r="3" fill="#FFFFFF"/>
+  <circle cx="56" cy="73" r="3" fill="#FFFFFF"/>
+</svg>

@@ -1,4 +1,4 @@
-# iMoonlight
+# <img src="art/iMoonlight-icon-256.png" width="64" align="center" alt=""> iMoonlight
 
 A Moonlight client for iPhone that adds a **portrait mode**: your PC's screen fills the top of
 the phone, and the rest becomes a laptop-style **trackpad** with a **keyboard** button, working
