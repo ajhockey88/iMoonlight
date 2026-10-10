@@ -4,7 +4,8 @@
 //
 //  The touch surface, with the same gestures as ThorPad's PC mode:
 //  one finger moves the pointer, a tap clicks, tap-then-slide drags, a press and hold or
-//  a two-finger tap right-clicks, two fingers up or down scroll, two fingers sideways go
+//  a two-finger tap right-clicks, two fingers up or down scroll, spreading or pinching two
+//  fingers zooms (Ctrl + wheel), two fingers sideways go
 //  back / forward, and three-finger swipes switch apps, show task view or the desktop.
 //
 

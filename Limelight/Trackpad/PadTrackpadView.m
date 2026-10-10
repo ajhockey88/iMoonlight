@@ -14,7 +14,7 @@ typedef NS_ENUM(NSInteger, PadState) {
     PadStateIdle,        // finger down, not yet decided
     PadStateMoving,      // moving the pointer
     PadStateDragging,    // holding the left button down
-    PadStateTwoFinger,   // scrolling, or a two-finger tap
+    PadStateTwoFinger,   // scrolling, pinch zooming, or a two-finger tap
     PadStateDone,        // ignore the rest of this touch
     PadStateThreeFinger, // swiping with three fingers
 };
@@ -31,13 +31,17 @@ static const CGFloat SWIPE_PT = 70;
 static const CGFloat SLOP_PT = 4.8;
 /// A touch that strays less than this and lifts quickly still counts as a tap.
 static const CGFloat TAP_SLOP_PT = 12;
-/// Host pixels per point of finger travel before the pointer speed setting. ThorPad's
-/// numbers are in Android pixels on the AYN Thor's ~2.5x screen, so this keeps the same feel.
+/// Host pixels per point of finger travel before the pointer speed setting, tuned to match
+/// ThorPad's feel.
 static const CGFloat POINT_TO_PIXEL = 2.5;
 /// Finger travel (after scroll speed) for one wheel notch, in points.
 static const CGFloat NOTCH_PT = 22;
 /// High-resolution wheel units in one notch.
 static const CGFloat WHEEL_DELTA = 120;
+/// Fingers must spread or pinch this far, more than they move together, to start a zoom.
+static const CGFloat ZOOM_START_PT = 18;
+/// Change in finger spacing for each zoom step (Ctrl + one wheel notch), in points.
+static const CGFloat ZOOM_STEP_PT = 30;
 
 @implementation PadTrackpadView {
     NSMutableArray<UITouch*>* _touches;
@@ -45,9 +49,10 @@ static const CGFloat WHEEL_DELTA = 120;
     NSTimeInterval _downAt, _lastTapUpAt, _lastMoveAt;
     CGPoint _down, _last;
     CGFloat _maxStray;
-    BOOL _dragArmed, _longPressed, _scrolling, _swiping, _touching;
+    BOOL _dragArmed, _longPressed, _scrolling, _swiping, _zooming, _touching;
     NSUInteger _maxPointers;
-    CGFloat _twoLastY, _twoTravel, _twoStartX, _twoStartY;
+    CGFloat _twoLastY, _twoTravel, _twoStartX, _twoStartY, _twoStartSpread;
+    int _zoomSteps;
     CGFloat _threeStartX, _threeStartY;
     CGFloat _tickAcc;
 }
@@ -78,7 +83,7 @@ static const CGFloat WHEEL_DELTA = 120;
 static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     return @[
         @[@"Slide", @"move", @"Tap", @"click", @"Hold", @"right click", @"Tap, hold, slide", @"drag"],
-        @[@"Up / down", @"scroll", @"Tap", @"right click", @"Swipe right", @"back (Alt+←)", @"Swipe left", @"forward (Alt+→)"],
+        @[@"Up / down", @"scroll", @"Spread / pinch", @"zoom", @"Tap", @"right click", @"Swipe right", @"back (Alt+←)", @"Swipe left", @"forward (Alt+→)"],
         @[@"Swipe up", @"task view", @"Swipe down", @"show desktop", @"Swipe left / right", @"switch app"],
     ];
 }
@@ -168,6 +173,12 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     return n == 0 ? CGPointZero : CGPointMake(x / n, y / n);
 }
 
+- (CGFloat)spread {
+    if (_touches.count < 2) return 0;
+    CGPoint a = [_touches[0] locationInView:self], b = [_touches[1] locationInView:self];
+    return hypot(a.x - b.x, a.y - b.y);
+}
+
 - (void)buzz:(PadHapticAction)action {
     [PadHaptics play:action];
 }
@@ -197,6 +208,13 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     }
 }
 
+- (void)endZoom {
+    if (_zooming) {
+        _zooming = NO;
+        [[PadOutput shared] zoomEnd];
+    }
+}
+
 /// Lets go of whatever the current touch was doing.
 - (void)cancelGesture {
     [self cancelLongPressTimer];
@@ -204,6 +222,7 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
         [[PadOutput shared] dragEnd];
     }
     [self endScroll];
+    [self endZoom];
     _state = PadStateDone;
 }
 
@@ -247,6 +266,7 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     _longPressed = NO;
     _scrolling = NO;
     _swiping = NO;
+    _zooming = NO;
     _dragArmed = now - _lastTapUpAt < DRAG_WINDOW;
     [self startLongPressTimer];
 }
@@ -263,9 +283,12 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
         _twoStartX = avg.x;
         _twoStartY = avg.y;
         _twoTravel = 0;
+        _twoStartSpread = [self spread];
+        _zoomSteps = 0;
         _swiping = NO;
     } else if (count == 3) {
         [self endScroll];
+        [self endZoom];
         _state = PadStateThreeFinger;
         CGPoint avg = [self averageOf:3];
         _threeStartX = avg.x;
@@ -273,6 +296,7 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     } else {
         // Four or more fingers: not a gesture the trackpad uses.
         [self endScroll];
+        [self endZoom];
         _state = PadStateDone;
     }
 }
@@ -305,8 +329,30 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
         _twoLastY = avg.y;
         _twoTravel += fabs(dy);
         CGFloat sideways = avg.x - _twoStartX;
-        if (!_scrolling && !_swiping && fabs(sideways) > SLOP_PT
-                && fabs(sideways) > 1.5 * fabs(avg.y - _twoStartY)) {
+        // Pinching moves the fingers apart or together; scrolling and swiping move them as one.
+        CGFloat spreadChange = [self spread] - _twoStartSpread;
+        BOOL undecided = !_scrolling && !_swiping && !_zooming;
+        if (undecided && fabs(spreadChange) > ZOOM_START_PT
+                && fabs(spreadChange) > hypot(sideways, avg.y - _twoStartY)) {
+            _zooming = YES;
+        }
+        if (_zooming) {
+            // Spreading the fingers zooms in (bigger), pinching them together zooms out,
+            // like pinching a photo on the iPhone.
+            int steps = (int)(spreadChange / ZOOM_STEP_PT);
+            if (steps != _zoomSteps) {
+                [out zoomBy:steps - _zoomSteps];
+                _zoomSteps = steps;
+                [self buzz:PadHapticScroll];
+            }
+            return;
+        }
+        if (undecided && fabs(spreadChange) > 0.7 * _twoTravel + SLOP_PT) {
+            return; // looks like the start of a pinch: wait before scrolling
+        }
+        if (undecided && fabs(sideways) > SLOP_PT
+                && fabs(sideways) > 1.5 * fabs(avg.y - _twoStartY)
+                && fabs(spreadChange) < fabs(sideways)) {
             _swiping = YES; // a sideways swipe: back or forward, not a scroll
         }
         if (_swiping) {
@@ -384,8 +430,9 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     BOOL wasFirst = _touches.firstObject == touch;
     [_touches removeObject:touch];
     if (_state == PadStateTwoFinger && countBefore == 2) {
-        if (_scrolling) {
+        if (_scrolling || _zooming) {
             [self endScroll];
+            [self endZoom];
             _state = PadStateDone;
         }
         // Otherwise wait for the last finger: it may be a two-finger tap.
@@ -405,13 +452,14 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     if (_state == PadStateDragging) {
         [[PadOutput shared] dragEnd];
         [self buzz:PadHapticDragEnd];
-    } else if (_state == PadStateTwoFinger && !_scrolling && !_swiping && _maxPointers == 2 && held < 0.350) {
+    } else if (_state == PadStateTwoFinger && !_scrolling && !_swiping && !_zooming && _maxPointers == 2 && held < 0.350) {
         [out rightClick];
         [self buzz:PadHapticRightClick];
     } else if ([self maybeTap:held now:now]) {
         return;
     } else if (_state == PadStateTwoFinger) {
         [self endScroll];
+        [self endZoom];
     }
     _state = PadStateDone;
 }
@@ -431,6 +479,7 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
         [[PadOutput shared] dragEnd];
     }
     [self endScroll];
+    [self endZoom];
     [self maybeTap:now - _downAt now:now];
     _state = PadStateDone;
 }

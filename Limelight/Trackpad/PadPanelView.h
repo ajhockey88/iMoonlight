@@ -3,8 +3,8 @@
 //  iMoonlight
 //
 //  The half of the screen that isn't the stream in portrait: a slim bar of buttons
-//  (Keyboard, PC keys, Settings, Disconnect) over the trackpad. The keyboard and PC keys
-//  cover the whole panel, bar included, while they're open - like ThorPad.
+//  (Keyboard, PC keys, Settings, Disconnect) over the trackpad. The keyboard is iPhone-size
+//  along the bottom, with the trackpad still usable above it; PC keys cover the whole panel.
 //
 
 #import <UIKit/UIKit.h>

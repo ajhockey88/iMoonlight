@@ -1,9 +1,9 @@
 # iMoonlight
 
 A Moonlight client for iPhone that adds a **portrait mode**: your PC's screen fills the top of
-the phone, and the rest becomes a laptop-style **trackpad** with a **keyboard** button, behaving
-like [ThorPad](https://github.com/ajhockey88/ThorPad) does on the AYN Thor. Turn the phone
-sideways and it's regular full-screen Moonlight.
+the phone, and the rest becomes a laptop-style **trackpad** with a **keyboard** button, working
+like [ThorPad](https://github.com/ajhockey88/ThorPad). Turn the phone sideways and it's regular
+full-screen Moonlight.
 
 It's built on [Moonlight for iOS](https://github.com/moonlight-stream/moonlight-ios) and connects
 to the same hosts: [Sunshine](https://github.com/LizardByte/Sunshine) (or Apollo) on your Windows PC.
@@ -20,6 +20,7 @@ Hold the phone upright while streaming. Along the top of the trackpad is a bar w
 | ✊ Tap, then quickly touch again, pause a moment, and slide | Drag (press, move, release) |
 | 🤞 Press and hold, or two-finger tap | Right click |
 | ✌️ Two fingers up or down | Scroll |
+| 🤏 Spread two fingers apart / pinch them together | Zoom in (bigger text) / zoom out (Ctrl + mouse wheel) |
 | 👉 / 👈 Two fingers swiped right / left | Back / forward (Alt+← / Alt+→) |
 | 🤟 Three fingers swiped up | Task view (Win+Tab) |
 | 🤟 Three fingers swiped down | Show the desktop (Win+D) |
@@ -28,7 +29,8 @@ Hold the phone upright while streaming. Along the top of the trackpad is a bar w
 The bottom of the trackpad lists these gestures in three columns: one, two and three fingers.
 Every action gives a haptic tap.
 
-- ⌨️ **Keyboard** fills the trackpad area with a full keyboard. Keys type the moment your finger
+- ⌨️ **Keyboard** opens an iPhone-size keyboard along the bottom, with the trackpad still
+  usable above it. Keys type the moment your finger
   lands (Settings can switch this to "type when the finger lifts"), each finger is tracked
   separately, and every press flashes and buzzes. **?123** and **=\<** switch to numbers,
   symbols, Esc, Tab and arrow keys. Tap ⇧ once for one capital letter, or twice quickly for caps
