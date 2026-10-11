@@ -20,6 +20,8 @@ extern NSString* const PadKeyAutocorrect;
 extern NSString* const PadKeyTypeOnRelease;
 extern NSString* const PadKeyAutoCapitalize;
 extern NSString* const PadKeyDoubleSpacePeriod;
+extern NSString* const PadKeyShowHints;
+extern NSString* const PadKeyTextSize;
 
 /// Posted when any trackpad setting changes.
 extern NSString* const PadSettingsChangedNotification;
@@ -48,6 +50,8 @@ extern NSString* const PadSettingsChangedNotification;
 + (BOOL)autoCapitalize;
 /// Keyboard: two spaces type ". ".
 + (BOOL)doubleSpacePeriod;
+/// Trackpad: the gesture cheat sheet along the bottom. Off by default.
++ (BOOL)showHints;
 
 + (float)floatForKey:(NSString*)key;
 + (void)setFloat:(float)value forKey:(NSString*)key;

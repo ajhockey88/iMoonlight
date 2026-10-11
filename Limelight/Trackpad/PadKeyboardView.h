@@ -18,11 +18,18 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol PadKeyboardViewDelegate <NSObject>
 - (void)keyboardViewDidClose:(PadKeyboardView*)view;
+@optional
+/// The hand button was pressed or let go.
+- (void)keyboardView:(PadKeyboardView*)view handHeld:(BOOL)held;
 @end
 
 @interface PadKeyboardView : UIView
 
 @property (nonatomic, weak, nullable) id<PadKeyboardViewDelegate> delegate;
+
+/// Shows the hand button in the preview strip. While it is held, one finger on the trackpad
+/// acts as two. Off sideways, where the trackpad is not above the keyboard.
+@property (nonatomic) BOOL handEnabled;
 
 /// How tall the keyboard is in portrait: about the height of the iPhone's own keyboard.
 + (CGFloat)preferredHeight;

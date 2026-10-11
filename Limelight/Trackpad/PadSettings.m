@@ -17,6 +17,9 @@ NSString* const PadKeyTypeOnRelease = @"pad.typeOnRelease";
 NSString* const PadKeyAutoCapitalize = @"pad.autoCapitalize";
 NSString* const PadKeyDoubleSpacePeriod = @"pad.doubleSpacePeriod";
 
+NSString* const PadKeyShowHints = @"pad.showHints";
+NSString* const PadKeyTextSize = @"pad.windowsTextSize";
+
 NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotification";
 
 @implementation PadSettings
@@ -35,6 +38,7 @@ NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotificatio
             PadKeyTypeOnRelease: @NO,
             PadKeyAutoCapitalize: @YES,
             PadKeyDoubleSpacePeriod: @YES,
+            PadKeyShowHints: @NO,
         }];
     }
 }
@@ -50,6 +54,8 @@ NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotificatio
 + (BOOL)typeOnRelease { return [self boolForKey:PadKeyTypeOnRelease]; }
 + (BOOL)autoCapitalize { return [self boolForKey:PadKeyAutoCapitalize]; }
 + (BOOL)doubleSpacePeriod { return [self boolForKey:PadKeyDoubleSpacePeriod]; }
+
++ (BOOL)showHints { return [self boolForKey:PadKeyShowHints]; }
 
 + (float)floatForKey:(NSString*)key {
     return [[NSUserDefaults standardUserDefaults] floatForKey:key];

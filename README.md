@@ -32,7 +32,7 @@ the right; swipe down from the top of the trackpad to show the bar.
 | 🤟 Three fingers swiped down | Show the desktop (Win+D) |
 | 🤟 Three fingers swiped left or right | Switch app (Alt+Tab) |
 
-The bottom of the trackpad lists these gestures in three columns: one, two and three fingers.
+Settings can list these gestures along the bottom of the trackpad in three columns (**Finger hints**, off by default).
 Every action gives a haptic tap.
 
 - ⌨️ **Keyboard** opens along the bottom, taking up about as much room as the iPhone's own
@@ -43,6 +43,9 @@ Every action gives a haptic tap.
   lock. A new sentence starts with a capital letter, and tapping space twice types ". ".
   Hold ⌫ to keep deleting; while you hold it, the space bar turns red and says
   **Clear all** (Ctrl+A, then Backspace). **✕ Close** returns to the trackpad.
+- ✋ **Hand button** (portrait, left of the keyboard's preview strip): hold it and one finger on the
+  trackpad counts as two, so sliding up or down scrolls, swiping left goes back and swiping right
+  goes forward, and a quick tap right-clicks.
 - ✨ **Autocorrect** (on by default, the same engine as ThorPad) fixes a misspelled word when you
   finish it with a space or punctuation. It weighs how common each word is, how often it follows
   the word before, and how easy the slip was (neighbouring keys count as small slips). It splits
@@ -56,9 +59,13 @@ Every action gives a haptic tap.
   Home / End / Page Up / Page Down / Delete / Backspace and arrows. Ctrl, Alt, Shift and Win stay
   held after a tap and go with the next key, for any combo. **ABC** switches to the keyboard.
 - ⚙️ **Settings**: pointer speed and acceleration, scroll speed, pinch zoom speed, classic scroll direction,
-  swap screens (trackpad on top), dim when idle, autocorrect, auto-capitalization, the "." shortcut, type when
-  the finger lifts, and a
+  swap screens (trackpad on top), finger hints, dim when idle, autocorrect, auto-capitalization, the "." shortcut, type when
+  the finger lifts, Windows text size (100 / 150 / 200%), and a
   feel (Off, Tick, Click, Heavy, Double, Buzz) and strength for every haptic.
+
+**Windows text size**: run `Tools/TextSize.ahk` (AutoHotkey v2) on the PC. Settings > Windows >
+Text size presses Ctrl+Alt+Shift+F1 / F2 / F3 and the script sets Windows Text Size to 100 / 150 / 200%.
+Disconnect puts it back to 100%.
 
 Touching the stream itself still works like Moonlight's own touch mode, and tapping with three
 fingers on the stream opens the iPhone keyboard.

@@ -88,11 +88,18 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
         [self addSubview:_pcKeys];
 
         [self restartIdleTimer];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(settingsChanged)
+                                                     name:PadSettingsChangedNotification object:nil];
     }
     return self;
 }
 
+- (void)settingsChanged {
+    [self setNeedsLayout];
+}
+
 - (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
 }
 
@@ -165,7 +172,8 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
         _grabber.hidden = YES;
     }
     _pad.frame = CGRectMake(left, padTop, width, padHeight);
-    _pad.showHints = !_sideBySide;
+    _pad.showHints = !_sideBySide && [PadSettings showHints];
+    _keyboard.handEnabled = !_sideBySide && !keyboardCoversPad;
     _pad.active = _pcKeys.hidden && !keyboardCoversPad;
     _pcKeys.frame = b;
 }
@@ -256,7 +264,19 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
 - (void)disconnectTapped {
     [self hideBar];
     [PadHaptics play:PadHapticBar];
-    [self.delegate padPanelWantsDisconnect:self];
+    // Put Windows Text Size back to 100% before the stream goes away, and give the key
+    // press a moment to reach the PC.
+    NSTimeInterval wait = 0;
+    if ([PadSettings integerForKey:PadKeyTextSize fallback:100] != 100) {
+        [PadSettings setInteger:100 forKey:PadKeyTextSize];
+        [[PadOutput shared] setWindowsTextSize:100];
+        wait = 0.4;
+    }
+    __weak PadPanelView* weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        PadPanelView* strongSelf = weakSelf;
+        if (strongSelf != nil) [strongSelf.delegate padPanelWantsDisconnect:strongSelf];
+    });
 }
 
 - (void)openKeyboard {
@@ -288,6 +308,10 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
     [_pcKeys reset];
     [self showTrackpad];
     [[PadOutput shared] releaseAll];
+}
+
+- (void)keyboardView:(PadKeyboardView*)view handHeld:(BOOL)held {
+    _pad.handHeld = held;
 }
 
 - (void)keyboardViewDidClose:(PadKeyboardView*)view {
