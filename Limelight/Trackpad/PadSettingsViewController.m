@@ -6,8 +6,9 @@
 #import "PadSettingsViewController.h"
 #import "PadSettings.h"
 #import "PadHaptics.h"
+#import "PadOutput.h"
 
-enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionHaptics, SectionCount };
+enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionWindows, SectionHaptics, SectionCount };
 
 /// A row: a slider or a switch bound to a setting.
 @interface PadSettingRow : NSObject
@@ -59,6 +60,7 @@ enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionHaptics, SectionC
               [PadSettingRow toggle:@"\".\" shortcut" detail:@"Tapping space twice types a period and a space" key:PadKeyDoubleSpacePeriod],
               [PadSettingRow toggle:@"Type when the finger lifts" detail:@"Lets you slide onto the right key before it types" key:PadKeyTypeOnRelease]],
             @[],
+            @[],
         ];
     }
     return self;
@@ -86,11 +88,15 @@ enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionHaptics, SectionC
         case SectionTrackpad: return @"Trackpad";
         case SectionLayout: return @"Screen";
         case SectionKeyboard: return @"Keyboard";
+        case SectionWindows: return @"Windows";
         default: return @"Haptics";
     }
 }
 
 - (NSString*)tableView:(UITableView*)tableView titleForFooterInSection:(NSInteger)section {
+    if (section == SectionWindows) {
+        return @"Switches Windows Text Size by pressing Ctrl+Alt+Shift+F1 / F2 / F3. Needs Tools/TextSize.ahk running on the PC.";
+    }
     if (section == SectionHaptics) {
         return @"Each action gets its own feel and strength. Every change plays a preview.";
     }
@@ -98,6 +104,7 @@ enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionHaptics, SectionC
 }
 
 - (NSInteger)tableView:(UITableView*)tableView numberOfRowsInSection:(NSInteger)section {
+    if (section == SectionWindows) return 1;
     return section == SectionHaptics ? PadHapticActionCount : _rows[section].count;
 }
 
@@ -126,6 +133,20 @@ static UILabel* label(NSString* text, UIFont* font, UIColor* color) {
         [stack.bottomAnchor constraintEqualToAnchor:cell.contentView.bottomAnchor constant:-10],
     ]];
 
+    if (indexPath.section == SectionWindows) {
+        [stack addArrangedSubview:label(@"Text size", [UIFont systemFontOfSize:17], [UIColor labelColor])];
+        UISegmentedControl* seg = [[UISegmentedControl alloc] initWithItems:@[@"100%", @"150%", @"200%"]];
+        NSInteger saved = [PadSettings integerForKey:PadKeyTextSize fallback:100];
+        seg.selectedSegmentIndex = saved >= 200 ? 2 : saved >= 150 ? 1 : 0;
+        [seg addAction:[UIAction actionWithHandler:^(UIAction* a) {
+            int pct = (int[]){100, 150, 200}[((UISegmentedControl*)a.sender).selectedSegmentIndex];
+            [PadSettings setInteger:pct forKey:PadKeyTextSize];
+            [[PadOutput shared] setWindowsTextSize:pct];
+            [PadHaptics play:PadHapticKey];
+        }] forControlEvents:UIControlEventValueChanged];
+        [stack addArrangedSubview:seg];
+        return cell;
+    }
     if (indexPath.section == SectionHaptics) {
         [self buildHapticRow:(PadHapticAction)indexPath.row inStack:stack];
         return cell;
