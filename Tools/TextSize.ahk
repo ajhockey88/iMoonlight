@@ -1,35 +1,53 @@
-; iMoonlight: Windows Text Size presets. AutoHotkey v2.
+; iMoonlight: Windows display scale presets. AutoHotkey v2.
 ; Run this on the PC you stream from (put a shortcut in shell:startup).
-; iMoonlight's Settings > Windows > Text size presses these keys:
+; iMoonlight's Settings > Windows > Display scale presses these keys:
 ;   Ctrl+Alt+Shift+F1 = 100%   Ctrl+Alt+Shift+F2 = 150%   Ctrl+Alt+Shift+F3 = 200%
+; It sets the same "Scale" as Settings > System > Display, on every active display, and
+; Windows applies it live. (The real Text size slider can't be applied from a script.)
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
-Broadcast(what, spi := 0) {
-    static HWND_BROADCAST := 0xFFFF, WM_SETTINGCHANGE := 0x1A, SMTO_ABORTIFHUNG := 2
-    DllCall("SendMessageTimeoutW", "Ptr", HWND_BROADCAST, "UInt", WM_SETTINGCHANGE, "Ptr", spi
-        , "Str", what, "UInt", SMTO_ABORTIFHUNG, "UInt", 2000, "Ptr*", 0)
+SCALES := [100, 125, 150, 175, 200, 225, 250, 300, 350, 400, 450, 500]
+
+; Returns how many displays changed.
+SetDisplayScale(percent) {
+    target := 0
+    for i, s in SCALES
+        if (s = percent)
+            target := i
+    DllCall("GetDisplayConfigBufferSizes", "UInt", 2, "UInt*", &np := 0, "UInt*", &nm := 0)  ; active paths only
+    paths := Buffer(72 * np, 0)
+    modes := Buffer(64 * nm, 0)
+    if DllCall("QueryDisplayConfig", "UInt", 2, "UInt*", &np, "Ptr", paths, "UInt*", &nm, "Ptr", modes, "Ptr", 0)
+        return 0
+    changed := 0
+    Loop np {
+        base := (A_Index - 1) * 72
+        luid := NumGet(paths, base, "Int64")
+        id := NumGet(paths, base + 8, "UInt")
+        ; Ask what this display can do: scales are counted relative to its recommended one.
+        get := Buffer(32, 0)
+        NumPut("Int", -3, "UInt", 32, "Int64", luid, "UInt", id, get)
+        if DllCall("DisplayConfigGetDeviceInfo", "Ptr", get)
+            continue
+        minRel := NumGet(get, 20, "Int")
+        maxRel := NumGet(get, 28, "Int")
+        recommended := 1 - minRel  ; minRel is minus the recommended scale's distance from 100%
+        rel := Max(minRel, Min(maxRel, target - recommended))
+        set := Buffer(24, 0)
+        NumPut("Int", -4, "UInt", 24, "Int64", luid, "UInt", id, "Int", rel, set)
+        if !DllCall("DisplayConfigSetDeviceInfo", "Ptr", set)
+            changed++
+    }
+    return changed
 }
 
-SetTextSize(percent) {
-    key := "HKCU\Software\Microsoft\Accessibility"
-    RegWrite(percent, "REG_DWORD", key, "TextScaleFactor")
-    ; Tell Windows and running apps to pick the change up without signing out. Besides the
-    ; named notices, send the ones Windows' own Display settings send (wParam = the SPI code):
-    ; non-client metrics, icon metrics and work area, which make Explorer redraw the taskbar.
-    for what in ["TextScaleFactor", "WindowsThemeElement", "ImmersiveColorSet", "Accessibility"]
-        Broadcast(what)
-    for spi in [0x2A, 0x2E, 0x2F]  ; SPI_SETNONCLIENTMETRICS, SPI_SETICONMETRICS, SPI_SETWORKAREA
-        Broadcast("", spi)
-    ; Also poke the taskbar directly.
-    static WM_SETTINGCHANGE := 0x1A
-    try PostMessage(WM_SETTINGCHANGE, 0x2A, 0, , "ahk_class Shell_TrayWnd")
-    ; Show what Windows now has, so a write that didn't stick is obvious.
-    now := RegRead(key, "TextScaleFactor", "missing")
-    ToolTip("Text size " percent "% (registry: " now ")")
+Apply(percent) {
+    n := SetDisplayScale(percent)
+    ToolTip("Display scale " percent "% (" n " display" (n = 1 ? "" : "s") " changed)")
     SetTimer(() => ToolTip(), -2500)
 }
 
-^!+F1:: SetTextSize(100)
-^!+F2:: SetTextSize(150)
-^!+F3:: SetTextSize(200)
+^!+F1:: Apply(100)
+^!+F2:: Apply(150)
+^!+F3:: Apply(200)

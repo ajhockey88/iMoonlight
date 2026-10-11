@@ -264,7 +264,7 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
 - (void)disconnectTapped {
     [self hideBar];
     [PadHaptics play:PadHapticBar];
-    // Put Windows Text Size back to 100% before the stream goes away, and give the key
+    // Put the Windows display scale back to 100% before the stream goes away, and give the key
     // press a moment to reach the PC.
     NSTimeInterval wait = 0;
     if ([PadSettings integerForKey:PadKeyTextSize fallback:100] != 100) {
