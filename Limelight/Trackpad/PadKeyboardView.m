@@ -87,7 +87,8 @@ static NSArray<PadKey*>* bottomRow(NSString* pageLabel, NSInteger target) {
 @implementation PadKeyboardView {
     NSArray<NSArray<NSArray<PadKey*>*>*>* _pages;
     PadKey* _closeKey;
-    CGRect _stripRect, _pillRect;
+    CGRect _stripRect, _pillRect, _handRect;
+    UITouch* _handTouch;
     NSMapTable<UITouch*, id>* _down; // touch -> PadKey or NSNull
     NSMutableString* _typed;
     NSInteger _page;
@@ -288,12 +289,18 @@ static void drawCentered(NSString* text, CGRect r, UIFont* font, UIColor* color)
     CGFloat x = h * 0.3;
     CGFloat cy = CGRectGetMidY(_stripRect);
 
-    UIFont* hintFont = [UIFont systemFontOfSize:h * 0.28];
-    NSString* hint = @"Typing to PC";
-    NSDictionary* hintAttrs = @{NSFontAttributeName: hintFont, NSForegroundColorAttributeName: rgb(0x6e, 0x73, 0x7d)};
-    CGSize hs = [hint sizeWithAttributes:hintAttrs];
-    [hint drawAtPoint:CGPointMake(x, cy - hs.height / 2) withAttributes:hintAttrs];
-    x += hs.width + h * 0.22;
+    _handRect = CGRectZero;
+    if (_handEnabled) {
+        // Hold to put a second finger on the trackpad, so one finger scrolls and swipes.
+        CGFloat bw = h * 1.5;
+        _handRect = CGRectMake(h * 0.12, h * 0.14, bw, h * 0.72);
+        [(_handTouch != nil ? rgb(0x78, 0xc8, 0xff) : rgb(0x2c, 0x30, 0x39)) setFill];
+        [[UIBezierPath bezierPathWithRoundedRect:_handRect cornerRadius:h * 0.2] fill];
+        NSDictionary* handAttrs = @{NSFontAttributeName: [UIFont systemFontOfSize:h * 0.46]};
+        CGSize hs = [@"✋" sizeWithAttributes:handAttrs];
+        [@"✋" drawAtPoint:CGPointMake(CGRectGetMidX(_handRect) - hs.width / 2, cy - hs.height / 2) withAttributes:handAttrs];
+        x = CGRectGetMaxX(_handRect) + h * 0.22;
+    }
 
     CGFloat right = CGRectGetMaxX(_stripRect) - h * 0.3;
     _pillRect = CGRectZero;
@@ -354,6 +361,13 @@ static void drawCentered(NSString* text, CGRect r, UIFont* font, UIColor* color)
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     for (UITouch* touch in touches) {
         CGPoint p = [touch locationInView:self];
+        if (_handEnabled && _handTouch == nil && CGRectContainsPoint(CGRectInset(_handRect, -6, -6), p)) {
+            _handTouch = touch;
+            [_down setObject:[NSNull null] forKey:touch];
+            [PadHaptics play:PadHapticKey];
+            [self notifyHand];
+            continue;
+        }
         PadKey* k = [self keyAt:p];
         [_down setObject:(k ?: [NSNull null]) forKey:touch];
         if (k == nil && _suggestion != nil && p.y < CGRectGetMaxY(_stripRect)) {
@@ -400,6 +414,10 @@ static void drawCentered(NSString* text, CGRect r, UIFont* font, UIColor* color)
 
 - (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     for (UITouch* touch in touches) {
+        if (touch == _handTouch) {
+            _handTouch = nil;
+            [self notifyHand];
+        }
         id value = [_down objectForKey:touch];
         [_down removeObjectForKey:touch];
         if (![value isKindOfClass:[PadKey class]]) continue;
@@ -600,7 +618,28 @@ static BOOL isWordChar(unichar c) {
     [PadHaptics play:PadHapticClearAll];
 }
 
+- (void)notifyHand {
+    if ([self.delegate respondsToSelector:@selector(keyboardView:handHeld:)]) {
+        [self.delegate keyboardView:self handHeld:_handTouch != nil];
+    }
+    [self setNeedsDisplay];
+}
+
+- (void)setHandEnabled:(BOOL)handEnabled {
+    if (_handEnabled == handEnabled) return;
+    _handEnabled = handEnabled;
+    if (!handEnabled && _handTouch != nil) {
+        _handTouch = nil;
+        [self notifyHand];
+    }
+    [self setNeedsDisplay];
+}
+
 - (void)cancelTouches {
+    if (_handTouch != nil) {
+        _handTouch = nil;
+        [self notifyHand];
+    }
     [_down removeAllObjects];
     _repeating = nil;
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(repeatKey) object:nil];

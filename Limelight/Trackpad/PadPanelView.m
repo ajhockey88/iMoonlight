@@ -88,11 +88,18 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
         [self addSubview:_pcKeys];
 
         [self restartIdleTimer];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(settingsChanged)
+                                                     name:PadSettingsChangedNotification object:nil];
     }
     return self;
 }
 
+- (void)settingsChanged {
+    [self setNeedsLayout];
+}
+
 - (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
 }
 
@@ -165,7 +172,8 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
         _grabber.hidden = YES;
     }
     _pad.frame = CGRectMake(left, padTop, width, padHeight);
-    _pad.showHints = !_sideBySide;
+    _pad.showHints = !_sideBySide && [PadSettings showHints];
+    _keyboard.handEnabled = !_sideBySide && !keyboardCoversPad;
     _pad.active = _pcKeys.hidden && !keyboardCoversPad;
     _pcKeys.frame = b;
 }
@@ -288,6 +296,10 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
     [_pcKeys reset];
     [self showTrackpad];
     [[PadOutput shared] releaseAll];
+}
+
+- (void)keyboardView:(PadKeyboardView*)view handHeld:(BOOL)held {
+    _pad.handHeld = held;
 }
 
 - (void)keyboardViewDidClose:(PadKeyboardView*)view {

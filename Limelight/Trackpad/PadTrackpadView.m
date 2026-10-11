@@ -56,6 +56,8 @@ static const CGFloat ZOOM_STEP_PT = 60;
     int _zoomSteps;
     CGFloat _threeStartX, _threeStartY;
     CGFloat _tickAcc;
+    /// The hand button was held when this touch began, so it counts as a second finger.
+    BOOL _virtualFinger;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -64,7 +66,7 @@ static const CGFloat ZOOM_STEP_PT = 60;
         _touches = [NSMutableArray array];
         _state = PadStateDone;
         _active = YES;
-        _showHints = YES;
+        _showHints = NO;
         self.multipleTouchEnabled = YES;
         self.backgroundColor = [UIColor blackColor];
         self.contentMode = UIViewContentModeRedraw;
@@ -291,11 +293,22 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     _swiping = NO;
     _zooming = NO;
     _dragArmed = now - _lastTapUpAt < DRAG_WINDOW;
+    _virtualFinger = _handHeld;
+    if (_virtualFinger) {
+        // The held hand is the second finger: go straight to scrolling / swiping.
+        _dragArmed = NO;
+        [self anotherFingerDown];
+        return;
+    }
     [self startLongPressTimer];
 }
 
+- (NSUInteger)fingerCount {
+    return _touches.count + (_virtualFinger && _touches.count > 0 ? 1 : 0);
+}
+
 - (void)anotherFingerDown {
-    NSUInteger count = _touches.count;
+    NSUInteger count = [self fingerCount];
     _maxPointers = MAX(_maxPointers, count);
     [self cancelLongPressTimer];
     if (_state == PadStateDragging || _state == PadStateDone) return;
@@ -329,7 +342,7 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     PadOutput* out = _active ? [PadOutput shared] : nil;
 
     if (_state == PadStateThreeFinger) {
-        if (_touches.count < 3) return;
+        if ([self fingerCount] < 3) return;
         CGPoint avg = [self averageOf:3];
         CGFloat dx = avg.x - _threeStartX, dy = avg.y - _threeStartY;
         if (fabs(dx) > SWIPE_PT && fabs(dx) > 1.5 * fabs(dy)) {
@@ -346,7 +359,7 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
     }
 
     if (_state == PadStateTwoFinger) {
-        if (_touches.count < 2) return;
+        if ([self fingerCount] < 2) return;
         CGPoint avg = [self averageOf:2];
         CGFloat dy = avg.y - _twoLastY;
         _twoLastY = avg.y;
@@ -382,7 +395,9 @@ static NSArray<NSArray<NSString*>*>* hintColumns(void) {
         if (_swiping) {
             if (fabs(sideways) > SWIPE_PT) {
                 // PC browsers' back and forward keys.
-                [out pressKeys:@[@(PadVkAlt), @(sideways > 0 ? PadVkLeft : PadVkRight)]];
+                // With the hand held, swiping left goes back and right goes forward.
+                BOOL back = _virtualFinger ? sideways < 0 : sideways > 0;
+                [out pressKeys:@[@(PadVkAlt), @(back ? PadVkLeft : PadVkRight)]];
                 [self buzz:PadHapticNavigate];
                 _state = PadStateDone;
             }

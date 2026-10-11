@@ -18,9 +18,12 @@ NS_ASSUME_NONNULL_BEGIN
 /// Where gestures go; NO while the keyboard or PC keys cover the trackpad.
 /// A quiet line of text in the middle of the trackpad, e.g. while the video is off.
 @property (nonatomic, copy, nullable) NSString* note;
-/// The gesture cheat sheet along the bottom. On by default.
+/// The gesture cheat sheet along the bottom. Off by default (a setting).
 @property (nonatomic) BOOL showHints;
 @property (nonatomic) BOOL active;
+/// The keyboard's hand button is held: a finger on the trackpad counts as two, so one finger
+/// scrolls, and a sideways swipe goes back / forward.
+@property (nonatomic) BOOL handHeld;
 
 @end
 
