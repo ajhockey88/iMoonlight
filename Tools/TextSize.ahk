@@ -1,7 +1,8 @@
 ; iMoonlight: Windows display scale presets. AutoHotkey v2.
 ; Run this on the PC you stream from (put a shortcut in shell:startup).
 ; iMoonlight's Settings > Windows > Display scale presses these keys:
-;   Ctrl+Alt+Shift+F1 = 100%   Ctrl+Alt+Shift+F2 = 150%   Ctrl+Alt+Shift+F3 = 200%
+;   F13 = 100%   F14 = 150%   F15 = 200%
+; (Ctrl+Alt+Shift+F1 / F2 / F3 also work, for a keyboard that has no F13-F15.)
 ; It sets the same "Scale" as Settings > System > Display, on every active display, and
 ; Windows applies it live. (The real Text size slider can't be applied from a script.)
 #Requires AutoHotkey v2.0
@@ -48,6 +49,9 @@ Apply(percent) {
     SetTimer(() => ToolTip(), -2500)
 }
 
+F13:: Apply(100)
+F14:: Apply(150)
+F15:: Apply(200)
 ^!+F1:: Apply(100)
 ^!+F2:: Apply(150)
 ^!+F3:: Apply(200)

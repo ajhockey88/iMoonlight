@@ -34,6 +34,9 @@ enum {
     PadVkF2 = 0x71,
     PadVkF3 = 0x72,
     PadVkF4 = 0x73,
+    PadVkF13 = 0x7C,
+    PadVkF14 = 0x7D,
+    PadVkF15 = 0x7E,
     PadVkShift = 0xA0,
     PadVkCtrl = 0xA2,
     PadVkAlt = 0xA4,
@@ -77,7 +80,7 @@ typedef NS_ENUM(NSInteger, PadSpecialKey) {
 - (void)special:(PadSpecialKey)key;
 
 /// Asks the PC to switch its Windows display scale to 100, 150 or 200 percent, by pressing
-/// Ctrl+Alt+Shift+F1 / F2 / F3, which Tools/TextSize.ahk on the PC listens for.
+/// F13 / F14 / F15 (no modifiers), which Tools/TextSize.ahk on the PC listens for.
 - (void)setWindowsTextSize:(int)percent;
 
 /// Lets go of anything still held, e.g. when the stream ends mid-drag.
