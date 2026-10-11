@@ -264,19 +264,7 @@ static const NSTimeInterval BAR_SHOWN_FOR = 4;
 - (void)disconnectTapped {
     [self hideBar];
     [PadHaptics play:PadHapticBar];
-    // Put the Windows display scale back to 100% before the stream goes away, and give the key
-    // press a moment to reach the PC.
-    NSTimeInterval wait = 0;
-    if ([PadSettings integerForKey:PadKeyTextSize fallback:100] != 100) {
-        [PadSettings setInteger:100 forKey:PadKeyTextSize];
-        [[PadOutput shared] setWindowsTextSize:100];
-        wait = 0.4;
-    }
-    __weak PadPanelView* weakSelf = self;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        PadPanelView* strongSelf = weakSelf;
-        if (strongSelf != nil) [strongSelf.delegate padPanelWantsDisconnect:strongSelf];
-    });
+    [self.delegate padPanelWantsDisconnect:self];
 }
 
 - (void)openKeyboard {

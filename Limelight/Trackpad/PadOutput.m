@@ -152,11 +152,6 @@ static char modifierFlagFor(int code) {
     });
 }
 
-- (void)setWindowsTextSize:(int)percent {
-    int k = percent >= 200 ? PadVk3 : percent >= 150 ? PadVk2 : PadVk1;
-    [self pressKeys:@[@(PadVkCtrl), @(PadVkAlt), @(k)]];
-}
-
 - (void)typeText:(NSString*)text {
     NSString* copy = [text copy];
     dispatch_async(_keyQueue, ^{
