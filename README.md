@@ -64,7 +64,7 @@ Every action gives a haptic tap.
   feel (Off, Tick, Click, Heavy, Double, Buzz) and strength for every haptic.
 
 **Windows display scale**: run `Tools/TextSize.ahk` (AutoHotkey v2) on the PC. Settings > Windows >
-Display scale presses Ctrl+Alt+Shift+F1 / F2 / F3 and the script sets the Windows display scale
+Display scale presses F13 / F14 / F15 and the script sets the Windows display scale
 (Settings > System > Display > Scale, on every active display) to 100 / 150 / 200%, applied live.
 Disconnect puts it back to 100%.
 
