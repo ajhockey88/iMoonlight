@@ -43,12 +43,15 @@ Every action gives a haptic tap.
   lock. A new sentence starts with a capital letter, and tapping space twice types ". ".
   Hold ⌫ to keep deleting; while you hold it, the space bar turns red and says
   **Clear all** (Ctrl+A, then Backspace). **✕ Close** returns to the trackpad.
-- ✨ **Autocorrect** (on by default) fixes a misspelled word when you finish it with a space or
-  punctuation, and splits words run together by a missed space bar ("helloworld" or
-  "hellobworld" becomes "hello world"). Missing or extra letters, contractions ("dont" becomes "don't") and
-  the word before are all taken into account. While you type, the strip shows "→ correction"; tap it to keep your spelling.
-  Backspace right after a correction undoes it. Either way the word is remembered and not
-  corrected again.
+- ✨ **Autocorrect** (on by default, the same engine as ThorPad) fixes a misspelled word when you
+  finish it with a space or punctuation. It weighs how common each word is, how often it follows
+  the word before, and how easy the slip was (neighbouring keys count as small slips). It splits
+  words run together by a missed space bar ("helloworld" or "seebyou" becomes "hello world" or
+  "see you"), adds apostrophes ("dont" becomes "don't", and "its" or "ill" become "it's" or
+  "I'll" where that's what's meant), and fixes mixed-up words when the word before makes it plain
+  ("more then" becomes "more than"). Chat shorthand like "lol" or "brb" is left alone. While you
+  type, the strip shows "→ correction"; tap it to keep your spelling. Backspace right after a
+  correction undoes it. Either way the word is remembered and not corrected again.
 - 🖥️ **PC keys**: Esc, F1 to F12, Alt+Tab, Win+Tab, Win+D, Alt+F4, Ctrl+Shift+Esc, Print Screen,
   Home / End / Page Up / Page Down / Delete / Backspace and arrows. Ctrl, Alt, Shift and Win stay
   held after a tap and go with the next key, for any combo. **ABC** switches to the keyboard.
@@ -111,3 +114,6 @@ stream and the trackpad for each orientation.
 - The autocorrect dictionary (`Limelight/Trackpad/words.txt`) takes its spellings from SCOWL's
   American English word list and its word frequencies from
   [wordfreq](https://github.com/rspeer/wordfreq) (data licensed CC BY-SA 4.0).
+- Which words follow which (`Limelight/Trackpad/pairs.txt`) comes from ThorPad, built from
+  [SymSpell](https://github.com/mammothb/symspellpy)'s bigram list (MIT), drawn from Google Books
+  Ngram (CC BY 3.0).
