@@ -95,7 +95,7 @@ enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionWindows, SectionH
 
 - (NSString*)tableView:(UITableView*)tableView titleForFooterInSection:(NSInteger)section {
     if (section == SectionWindows) {
-        return @"Switches Windows Text Size by pressing Ctrl+Alt+Shift+F1 / F2 / F3. Needs Tools/TextSize.ahk running on the PC.";
+        return @"Sets the Windows display scale by pressing Ctrl+Alt+Shift+F1 / F2 / F3. Needs Tools/TextSize.ahk running on the PC.";
     }
     if (section == SectionHaptics) {
         return @"Each action gets its own feel and strength. Every change plays a preview.";
@@ -134,7 +134,7 @@ static UILabel* label(NSString* text, UIFont* font, UIColor* color) {
     ]];
 
     if (indexPath.section == SectionWindows) {
-        [stack addArrangedSubview:label(@"Text size", [UIFont systemFontOfSize:17], [UIColor labelColor])];
+        [stack addArrangedSubview:label(@"Display scale", [UIFont systemFontOfSize:17], [UIColor labelColor])];
         UISegmentedControl* seg = [[UISegmentedControl alloc] initWithItems:@[@"100%", @"150%", @"200%"]];
         NSInteger saved = [PadSettings integerForKey:PadKeyTextSize fallback:100];
         seg.selectedSegmentIndex = saved >= 200 ? 2 : saved >= 150 ? 1 : 0;

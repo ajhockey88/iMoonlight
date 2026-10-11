@@ -60,11 +60,12 @@ Every action gives a haptic tap.
   held after a tap and go with the next key, for any combo. **ABC** switches to the keyboard.
 - ⚙️ **Settings**: pointer speed and acceleration, scroll speed, pinch zoom speed, classic scroll direction,
   swap screens (trackpad on top), finger hints, dim when idle, autocorrect, auto-capitalization, the "." shortcut, type when
-  the finger lifts, Windows text size (100 / 150 / 200%), and a
+  the finger lifts, Windows display scale (100 / 150 / 200%), and a
   feel (Off, Tick, Click, Heavy, Double, Buzz) and strength for every haptic.
 
-**Windows text size**: run `Tools/TextSize.ahk` (AutoHotkey v2) on the PC. Settings > Windows >
-Text size presses Ctrl+Alt+Shift+F1 / F2 / F3 and the script sets Windows Text Size to 100 / 150 / 200%.
+**Windows display scale**: run `Tools/TextSize.ahk` (AutoHotkey v2) on the PC. Settings > Windows >
+Display scale presses Ctrl+Alt+Shift+F1 / F2 / F3 and the script sets the Windows display scale
+(Settings > System > Display > Scale, on every active display) to 100 / 150 / 200%, applied live.
 Disconnect puts it back to 100%.
 
 Touching the stream itself still works like Moonlight's own touch mode, and tapping with three

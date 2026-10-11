@@ -76,7 +76,7 @@ typedef NS_ENUM(NSInteger, PadSpecialKey) {
 - (void)typeText:(NSString*)text;
 - (void)special:(PadSpecialKey)key;
 
-/// Asks the PC to switch Windows Text Size to 100, 150 or 200 percent, by pressing
+/// Asks the PC to switch its Windows display scale to 100, 150 or 200 percent, by pressing
 /// Ctrl+Alt+Shift+F1 / F2 / F3, which Tools/TextSize.ahk on the PC listens for.
 - (void)setWindowsTextSize:(int)percent;
 

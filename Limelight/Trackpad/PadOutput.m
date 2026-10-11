@@ -142,11 +142,11 @@ static char modifierFlagFor(int code) {
         char modifiers = 0;
         for (NSNumber* key in keys) {
             modifiers |= modifierFlagFor(key.intValue);
-            LiSendKeyboardEvent(key.shortValue, KEY_ACTION_DOWN, modifiers);
+            LiSendKeyboardEvent(0x8000 | key.shortValue, KEY_ACTION_DOWN, modifiers);
         }
         usleep(KEY_HOLD_US);
         for (NSNumber* key in [keys reverseObjectEnumerator]) {
-            LiSendKeyboardEvent(key.shortValue, KEY_ACTION_UP, modifiers);
+            LiSendKeyboardEvent(0x8000 | key.shortValue, KEY_ACTION_UP, modifiers);
             modifiers &= ~modifierFlagFor(key.intValue);
         }
     });
