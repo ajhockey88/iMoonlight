@@ -48,6 +48,7 @@
 		98D585701C0ED0E800F6CC00 /* TemporarySettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 98D5856F1C0ED0E800F6CC00 /* TemporarySettings.m */; };
 		ADB5FD0CEDA2D8C69DDE6264 /* PadOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = 70916C8E29055584665FB989 /* PadOutput.m */; };
 		C0067C48665872D391313B01 /* PadSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4476BA863D9CB39F24EC376 /* PadSettingsViewController.m */; };
+		C154DF1BE1A7FCBE13284AB7 /* pairs.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7D28FEE0F9252A8150C8B016 /* pairs.txt */; };
 		CF356BD8C60DDA3B8ACA3953 /* PadPcKeysView.m in Sources */ = {isa = PBXBuildFile; fileRef = 537DFE0339CA94D9A3BDE44D /* PadPcKeysView.m */; };
 		DC1F5A07206436B20037755F /* ConnectionHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DC1F5A06206436B20037755F /* ConnectionHelper.m */; };
 		F74BEF9C2C1A705600224667 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = F74BEF9B2C1A705600224667 /* OpenSSL */; };
@@ -192,6 +193,7 @@
 		5CE9600961872927E37171C6 /* PadOutput.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PadOutput.h; sourceTree = "<group>"; };
 		693B3A9A218638CD00982F7B /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		70916C8E29055584665FB989 /* PadOutput.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadOutput.m; sourceTree = "<group>"; };
+		7D28FEE0F9252A8150C8B016 /* pairs.txt */ = {isa = PBXFileReference; includeInIndex = 1; path = pairs.txt; sourceTree = "<group>"; };
 		9249A7F67F62EE335F053EA8 /* PadTrackpadView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PadTrackpadView.m; sourceTree = "<group>"; };
 		9803CCAB254F9EAF00EE185E /* ConnectionCallbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionCallbacks.h; sourceTree = "<group>"; };
 		98132E8C20BC9A62007A053F /* Moonlight v1.1.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Moonlight v1.1.xcdatamodel"; sourceTree = "<group>"; };
@@ -416,6 +418,7 @@
 				0FA06D982C09EA792F4937C5 /* PadTrackpadView.h */,
 				9249A7F67F62EE335F053EA8 /* PadTrackpadView.m */,
 				04077268152A314C06173A67 /* words.txt */,
+				7D28FEE0F9252A8150C8B016 /* pairs.txt */,
 			);
 			name = Trackpad;
 			path = Trackpad;
@@ -880,6 +883,7 @@
 				FB290D0919B2C406004C83CF /* Images.xcassets in Resources */,
 				FB89463819F6473800339C8A /* Launch Screen.xib in Resources */,
 				142723E08D87BB5F0D3B4169 /* words.txt in Resources */,
+				C154DF1BE1A7FCBE13284AB7 /* pairs.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

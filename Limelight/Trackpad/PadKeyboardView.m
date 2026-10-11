@@ -22,7 +22,7 @@ static const NSTimeInterval CAPS_LOCK_DOUBLE_TAP = 0.350;
 static const NSTimeInterval FLASH = 0.090;
 static const CGFloat STRIP_HEIGHT = 44;
 /// Two taps of space this close together type ". ".
-static const NSTimeInterval DOUBLE_SPACE = 0.8;
+static const NSTimeInterval DOUBLE_SPACE = 1.5;
 
 static UIColor* rgb(int r, int g, int b) {
     return [UIColor colorWithRed:r / 255.0 green:g / 255.0 blue:b / 255.0 alpha:1];
@@ -634,6 +634,7 @@ static BOOL isWordChar(unichar c) {
             _fixOriginal = nil;
             if (_typed.length > 0) [_typed deleteCharactersInRange:NSMakeRange(_typed.length - 1, 1)];
             [[PadOutput shared] special:PadSpecialBackspace];
+            _lastSpaceAt = 0;
             [self updateSuggestion];
             break;
         case PadKeyEnter:
@@ -641,6 +642,7 @@ static BOOL isWordChar(unichar c) {
             [_typed setString:@""];
             _fixOriginal = nil;
             [[PadOutput shared] special:PadSpecialEnter];
+            _lastSpaceAt = 0;
             break;
         case PadKeySpecial:
             if (k.value == PadSpecialTab) [_typed appendString:@"\t"];
@@ -655,7 +657,7 @@ static BOOL isWordChar(unichar c) {
             if (isBoundary(c)) [self autocorrectWord:s];
             [self typeText:s];
             if (_shift == 1 && k.type == PadKeyChar) _shift = 0;
-            if (k.type == PadKeySpace) _lastSpaceAt = [NSProcessInfo processInfo].systemUptime;
+            _lastSpaceAt = k.type == PadKeySpace ? [NSProcessInfo processInfo].systemUptime : 0;
             [self updateSuggestion];
             break;
         }
@@ -664,14 +666,16 @@ static BOOL isWordChar(unichar c) {
     [self setNeedsDisplay];
 }
 
-/// A second quick space after a word turns the first into ". ", like the iPhone.
+/// A second quick space after a word (or a closing bracket or quote) turns the first into
+/// ". ", like the iPhone.
 - (BOOL)doubleSpaceToPeriod {
     NSTimeInterval now = [NSProcessInfo processInfo].systemUptime;
     NSUInteger n = _typed.length;
     if (!_doubleSpacePeriod || now - _lastSpaceAt > DOUBLE_SPACE || n < 2) return NO;
     if ([_typed characterAtIndex:n - 1] != ' ') return NO;
     unichar before = [_typed characterAtIndex:n - 2];
-    if (![[NSCharacterSet alphanumericCharacterSet] characterIsMember:before]) return NO;
+    if (![[NSCharacterSet alphanumericCharacterSet] characterIsMember:before]
+        && before != ')' && before != '"' && before != '\'') return NO;
     _lastSpaceAt = 0; // a third space is just a space
     _fixOriginal = nil;
     [self deleteChars:1];
