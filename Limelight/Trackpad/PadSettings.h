@@ -21,7 +21,6 @@ extern NSString* const PadKeyTypeOnRelease;
 extern NSString* const PadKeyAutoCapitalize;
 extern NSString* const PadKeyDoubleSpacePeriod;
 extern NSString* const PadKeyShowHints;
-extern NSString* const PadKeyTextSize;
 
 /// Posted when any trackpad setting changes.
 extern NSString* const PadSettingsChangedNotification;

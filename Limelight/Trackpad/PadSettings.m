@@ -18,7 +18,6 @@ NSString* const PadKeyAutoCapitalize = @"pad.autoCapitalize";
 NSString* const PadKeyDoubleSpacePeriod = @"pad.doubleSpacePeriod";
 
 NSString* const PadKeyShowHints = @"pad.showHints";
-NSString* const PadKeyTextSize = @"pad.windowsTextSize";
 
 NSString* const PadSettingsChangedNotification = @"PadSettingsChangedNotification";
 
