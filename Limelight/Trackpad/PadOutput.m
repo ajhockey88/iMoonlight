@@ -153,8 +153,8 @@ static char modifierFlagFor(int code) {
 }
 
 - (void)setWindowsTextSize:(int)percent {
-    int f = percent >= 200 ? PadVkF15 : percent >= 150 ? PadVkF14 : PadVkF13;
-    [self pressKeys:@[@(f)]];
+    int k = percent >= 200 ? PadVk3 : percent >= 150 ? PadVk2 : PadVk1;
+    [self pressKeys:@[@(PadVkCtrl), @(PadVkAlt), @(k)]];
 }
 
 - (void)typeText:(NSString*)text {

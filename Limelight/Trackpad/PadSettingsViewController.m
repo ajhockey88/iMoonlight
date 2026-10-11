@@ -95,7 +95,7 @@ enum { SectionTrackpad, SectionLayout, SectionKeyboard, SectionWindows, SectionH
 
 - (NSString*)tableView:(UITableView*)tableView titleForFooterInSection:(NSInteger)section {
     if (section == SectionWindows) {
-        return @"Sets the Windows display scale by pressing F13 / F14 / F15. Needs Tools/TextSize.ahk running on the PC.";
+        return @"Sets the Windows display scale by pressing Ctrl+Alt+1 / 2 / 3. Needs Tools/TextSize.ahk running on the PC.";
     }
     if (section == SectionHaptics) {
         return @"Each action gets its own feel and strength. Every change plays a preview.";
