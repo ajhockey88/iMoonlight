@@ -5,25 +5,25 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
-Broadcast(what) {
+Broadcast(what, spi := 0) {
     static HWND_BROADCAST := 0xFFFF, WM_SETTINGCHANGE := 0x1A, SMTO_ABORTIFHUNG := 2
-    DllCall("SendMessageTimeoutW", "Ptr", HWND_BROADCAST, "UInt", WM_SETTINGCHANGE, "Ptr", 0
+    DllCall("SendMessageTimeoutW", "Ptr", HWND_BROADCAST, "UInt", WM_SETTINGCHANGE, "Ptr", spi
         , "Str", what, "UInt", SMTO_ABORTIFHUNG, "UInt", 2000, "Ptr*", 0)
 }
 
 SetTextSize(percent) {
     key := "HKCU\Software\Microsoft\Accessibility"
     RegWrite(percent, "REG_DWORD", key, "TextScaleFactor")
-    ; Tell Windows and running apps to pick the change up without signing out.
+    ; Tell Windows and running apps to pick the change up without signing out. Besides the
+    ; named notices, send the ones Windows' own Display settings send (wParam = the SPI code):
+    ; non-client metrics, icon metrics and work area, which make Explorer redraw the taskbar.
     for what in ["TextScaleFactor", "WindowsThemeElement", "ImmersiveColorSet", "Accessibility"]
         Broadcast(what)
-    ; The taskbar only picks the new size up once it is activated (what clicking it does by
-    ; hand), so do that, then hand focus back to the window that had it.
-    prev := WinExist("A")
-    try WinActivate("ahk_class Shell_TrayWnd")
-    Sleep(150)
-    if prev
-        try WinActivate("ahk_id " prev)
+    for spi in [0x2A, 0x2E, 0x2F]  ; SPI_SETNONCLIENTMETRICS, SPI_SETICONMETRICS, SPI_SETWORKAREA
+        Broadcast("", spi)
+    ; Also poke the taskbar directly.
+    static WM_SETTINGCHANGE := 0x1A
+    try PostMessage(WM_SETTINGCHANGE, 0x2A, 0, , "ahk_class Shell_TrayWnd")
     ; Show what Windows now has, so a write that didn't stick is obvious.
     now := RegRead(key, "TextScaleFactor", "missing")
     ToolTip("Text size " percent "% (registry: " now ")")
