@@ -17,6 +17,13 @@ SetTextSize(percent) {
     ; Tell Windows and running apps to pick the change up without signing out.
     for what in ["TextScaleFactor", "WindowsThemeElement", "ImmersiveColorSet", "Accessibility"]
         Broadcast(what)
+    ; The taskbar only picks the new size up once it is activated (what clicking it does by
+    ; hand), so do that, then hand focus back to the window that had it.
+    prev := WinExist("A")
+    try WinActivate("ahk_class Shell_TrayWnd")
+    Sleep(150)
+    if prev
+        try WinActivate("ahk_id " prev)
     ; Show what Windows now has, so a write that didn't stick is obvious.
     now := RegRead(key, "TextScaleFactor", "missing")
     ToolTip("Text size " percent "% (registry: " now ")")
