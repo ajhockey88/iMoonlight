@@ -484,7 +484,7 @@ static BOOL startish(NSString* _Nullable prev) {
     unichar src[n + 1], buf[n + 2];
     [w getCharacters:src range:NSMakeRange(0, n)];
     // Each variant is written into buf as w's first i letters, the change, then the rest.
-    #define VARIANT(len, cost) [self put:out word:[NSString stringWithCharacters:buf length:(len)] cost:base + (cost) knownOnly:knownOnly]
+    #define VARIANT(LEN, COST) [self put:out word:[NSString stringWithCharacters:buf length:(LEN)] cost:base + (COST) knownOnly:knownOnly]
     for (NSUInteger i = 0; i <= n; i++) {
         memcpy(buf, src, i * sizeof(unichar));
         BOOL more = i < n; // letters left after position i
