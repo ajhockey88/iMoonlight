@@ -9,7 +9,9 @@
 
 SCALES := [100, 125, 150, 175, 200, 225, 250, 300, 350, 400, 450, 500]
 
-; Returns how many displays changed.
+; Returns a short report: how many displays changed, and for each its allowed range,
+; the step asked for, and the step Windows reports afterwards (steps are relative to the
+; display's recommended scale; 0 = recommended).
 SetDisplayScale(percent) {
     target := 0
     for i, s in SCALES
@@ -21,6 +23,7 @@ SetDisplayScale(percent) {
     if DllCall("QueryDisplayConfig", "UInt", 2, "UInt*", &np, "Ptr", paths, "UInt*", &nm, "Ptr", modes, "Ptr", 0)
         return 0
     changed := 0
+    report := ""
     Loop np {
         base := (A_Index - 1) * 72
         luid := NumGet(paths, base, "Int64")
@@ -36,16 +39,18 @@ SetDisplayScale(percent) {
         rel := Max(minRel, Min(maxRel, target - recommended))
         set := Buffer(24, 0)
         NumPut("Int", -4, "UInt", 24, "Int64", luid, "UInt", id, "Int", rel, set)
-        if !DllCall("DisplayConfigSetDeviceInfo", "Ptr", set)
+        err := DllCall("DisplayConfigSetDeviceInfo", "Ptr", set)
+        if !err
             changed++
+        DllCall("DisplayConfigGetDeviceInfo", "Ptr", get)
+        report .= "`n#" A_Index ": range " minRel ".." maxRel ", asked " rel ", now " NumGet(get, 24, "Int") ", result " err
     }
-    return changed
+    return changed " changed" report
 }
 
 Apply(percent) {
-    n := SetDisplayScale(percent)
-    ToolTip("Display scale " percent "% (" n " display" (n = 1 ? "" : "s") " changed)")
-    SetTimer(() => ToolTip(), -2500)
+    ToolTip("Display scale " percent "%: " SetDisplayScale(percent))
+    SetTimer(() => ToolTip(), -6000)
 }
 
 ^!1:: Apply(100)
