@@ -1,0 +1,34 @@
+name: PadLink iOS (unsigned IPA)
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ["PadLink/iOS/**", ".github/workflows/padlink-ios.yml"]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        working-directory: PadLink/iOS
+        run: xcodegen
+      - name: Build unsigned
+        working-directory: PadLink/iOS
+        run: |
+          xcodebuild -project PadLink.xcodeproj -scheme PadLink \
+            -sdk iphoneos -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+      - name: Package IPA
+        working-directory: PadLink/iOS
+        run: |
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/PadLink.app Payload/
+          zip -qr PadLink.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PadLink-unsigned-ipa
+          path: PadLink/iOS/PadLink.ipa
